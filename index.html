@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="HandheldFriendly" content="true" />
+		<meta name="viewport" content="width=device-width, height=device-height, user-scalable=no" />
+		<title>RTM bulk add</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+		<script src="md5-min.js"></script>
+		<script type="text/javascript">
+			function RTM(apiKey, sharedSecret) {
+			
+				var token,
+					username,
+					timeline;
+			
+				function addSig(values) {
+					var sortedKeys = [],
+						key,
+						concatenatedKeysAndValues = "",
+						i;
+					for(key in values) {
+						if(values.hasOwnProperty(key)) {
+							sortedKeys.push(key);
+						}
+					}
+					sortedKeys.sort();
+					
+					for(i = 0; i < sortedKeys.length; i++) {
+						key = sortedKeys[i];
+						concatenatedKeysAndValues += key;
+						concatenatedKeysAndValues += values[key];
+					}
+					
+					values["api_sig"] = hex_md5(sharedSecret + concatenatedKeysAndValues);
+				}
+				
+				function authenticateUser() {
+					var url = "http://www.rememberthemilk.com/services/auth/",
+						qs = {api_key: apiKey, perms: "write"};
+					
+					addSig(qs);
+					
+					url += "?" + $.param(qs);
+					
+					document.location = url;
+				}
+				
+				function getParameterByName(name) {
+					name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+					var regexS = "[\\?&]" + name + "=([^&#]*)";
+					var regex = new RegExp(regexS);
+					var results = regex.exec(window.location.href);
+					if(results == null)
+						return "";
+					else
+						return decodeURIComponent(results[1].replace(/\+/g, " "));
+				}
+				
+				function ensureToken(callback) {
+					var frob = getParameterByName("frob"),
+						that = this;
+									
+					if(frob !== "") {
+						apiCall("rtm.auth.getToken", {frob: frob}, false, function(data) {
+							localStorage.setItem("token", data.rsp.auth.token);
+							localStorage.setItem("username", data.rsp.auth.user.username);
+							
+							token = data.rsp.auth.token;
+							username = data.rsp.auth.user.username;
+							callback();
+						});
+					} else if(!localStorage.getItem("token") || !localStorage.getItem("username")) {
+						authenticateUser();
+					} else {
+						token = localStorage.getItem("token");
+						username = localStorage.getItem("username");
+						callback();
+					}
+				}
+				this.ensureToken = ensureToken;
+				
+				function ensureTimeline(callback) {
+					if(!timeline) {
+						apiCall("rtm.timelines.create", {}, true, function(data) {
+							console.log(data.rsp.timeline);
+							timeline = data.rsp.timeline;
+							
+							callback();
+						});
+					} else {
+						callback();
+					}
+				}
+				
+				function addTask(text, callback) {
+					ensureTimeline(function() {
+						apiCall("rtm.tasks.add", {timeline: timeline, name: text, parse: 1}, true, callback);
+					});
+				}
+				this.addTask = addTask;
+				
+				function apiCall(method, params, authenticated, callback) {
+					var url = "http://api.rememberthemilk.com/services/rest/",
+						functionName = "rtmJsonp" + (new Date()).getTime();
+						
+					params = params || {};
+					params["format"] = "json";
+					params["method"] = method;
+					params["api_key"] = apiKey;
+					params["callback"] = functionName;
+					if(authenticated) {
+						params["auth_token"] = token;
+					}
+					
+					addSig(params);
+					url += "?" + $.param(params);
+					
+					window[functionName] = function(data) {
+						$("#" + functionName).remove();
+						if(callback) {
+							callback(data);
+						}
+					}
+					
+					var head = document.getElementsByTagName('head')[0];
+					var script = document.createElement("script");
+					script.type = "text/javascript";
+					script.src = url;
+					script.id = functionName;
+					
+					head.appendChild(script);
+				}
+				this.apiCall = apiCall;
+				
+				function getUsername() {
+					return username;
+				}
+				this.getUsername = getUsername;
+			}
+			
+			function createTextbox(i, rtm) {
+				var div = $("<div />").text("List " + (i + 1)),
+					textarea = $("<textarea></textarea>"),
+					savebutton = $("<input />", {type: "button", value: "Save"}),
+					sendbutton = $("<input />", {type: "button", value: "Send to RTM"});
+					
+				textarea.val(localStorage.getItem("list" + i));
+					
+				savebutton.click(function() {
+					localStorage.setItem("list" + i, textarea.val());
+				});
+				
+				sendbutton.click(function() {
+					var lines = textarea.val().split("\n"),
+						i;
+					for(i = 0; i < lines.length; i++) {
+						rtm.addTask(lines[i]);
+					}
+				});
+				
+				div.append(textarea).append(savebutton).append(sendbutton);
+				$("#lists").append(div);
+			}
+			
+			function redrawTextboxes(rtm, numberOfLists) {
+				var i;
+				$("#lists").empty();
+				for(i = 0; i < numberOfLists; i++) {
+					createTextbox(i, rtm);
+				}
+			}
+			
+			$(function() {
+				
+				var apiKey = "----",
+					sharedSecret = "----",
+					rtm = new RTM(apiKey, sharedSecret),
+					numberOfLists = localStorage.getItem("numberOfLists"),
+					i;
+				
+				rtm.ensureToken(function() {
+					$("#username").text(rtm.getUsername());
+				
+					if(!numberOfLists) {
+						numberOfLists = 3;
+						localStorage.setItem("numberOfLists", numberOfLists);
+					}
+					
+					for(i = 1; i <= 30; i++) {
+						$("#numberOfLists").append($("<option />", {value: i}).text(i));
+					}
+					$("#numberOfLists").val(numberOfLists);
+					$("#numberOfLists").change(function() {
+						localStorage.setItem("numberOfLists", $("#numberOfLists").val());
+						redrawTextboxes(rtm, $("#numberOfLists").val());
+					});
+					
+					redrawTextboxes(rtm, numberOfLists);
+				});
+			});
+		</script>
+		<style type="text/css">
+			.username {
+				text-align: right;
+				padding-bottom: 20px;
+			}
+			
+			#username {
+				font-weight: bold;
+			}
+			
+			.numberOfLists {
+				padding-bottom: 20px;
+			}
+			
+			#lists textarea {
+				display: block;
+				width: 100%;
+				height: 7em;
+			}
+			
+			#lists input {
+				margin-top: 5px;
+				margin-right: 30px;
+			}
+			
+			#lists div {
+				margin-bottom: 30px;
+				padding: 5px;
+				border: 1px solid #CACACA;
+				background-color: #E8EEF7;
+			}
+			
+			#footer {
+				text-align: center;
+				font-size: x-small;
+			}
+			
+			#footer a {
+				text-decoration: none;
+				color: black;
+			}
+			
+			#footer a:hover {
+				text-decoration: underline;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="username">
+			Logged in as <span id="username"></span>.
+		</div>
+		<div class="numberOfLists">
+			Number of lists: <select id="numberOfLists"></select>
+		</div>
+		<div id="lists">
+		</div>
+		<div id="footer">
+			by <a href="http://www.twitter.com/alasdairnorth">@alasdairnorth</a> | <a href="http://software.alnorth.com/">other projects</a>
+		</div>
+	</body>
+</html>	
