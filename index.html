@@ -6,12 +6,14 @@
 		<title>RTM bulk add</title>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
 		<script src="md5-min.js"></script>
+		<script src="keys.js"></script>
 		<script type="text/javascript">
 			function RTM(apiKey, sharedSecret) {
 			
 				var token,
 					username,
-					timeline;
+					timeline,
+					apiCallCount = 0;
 			
 				function addSig(values) {
 					var sortedKeys = [],
@@ -101,8 +103,10 @@
 				
 				function apiCall(method, params, authenticated, callback) {
 					var url = "http://api.rememberthemilk.com/services/rest/",
-						functionName = "rtmJsonp" + (new Date()).getTime();
+						functionName = "rtmJsonp" + (new Date()).getTime() + "_" + apiCallCount;
 						
+					apiCallCount++;
+					
 					params = params || {};
 					params["format"] = "json";
 					params["method"] = method;
@@ -172,9 +176,7 @@
 			
 			$(function() {
 				
-				var apiKey = "----",
-					sharedSecret = "----",
-					rtm = new RTM(apiKey, sharedSecret),
+				var rtm = new RTM(apiKey, sharedSecret),
 					numberOfLists = localStorage.getItem("numberOfLists"),
 					i;
 				
