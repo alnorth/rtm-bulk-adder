@@ -74,9 +74,15 @@
 					} else if(!localStorage.getItem("token") || !localStorage.getItem("username")) {
 						authenticateUser();
 					} else {
-						token = localStorage.getItem("token");
-						username = localStorage.getItem("username");
-						callback();
+						apiCall("rtm.auth.checkToken", {auth_token: localStorage.getItem("token")}, false, function(data) {
+							if(data.rsp.stat === "ok") {
+								token = localStorage.getItem("token");
+								username = localStorage.getItem("username");
+								callback();
+							} else {
+								authenticateUser();
+							}
+						});
 					}
 				}
 				this.ensureToken = ensureToken;
