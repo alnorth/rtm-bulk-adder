@@ -72,6 +72,7 @@
 							callback();
 						});
 					} else if(!localStorage.getItem("token") || !localStorage.getItem("username")) {
+						alert("In order to use this page properly you must authorise it to access your Remember the Milk account. You are being redirected to Remember the Milk so that you can do this.");
 						authenticateUser();
 					} else {
 						apiCall("rtm.auth.checkToken", {auth_token: localStorage.getItem("token")}, false, function(data) {
@@ -80,6 +81,7 @@
 								username = localStorage.getItem("username");
 								callback();
 							} else {
+								alert("Your token from Remember the Milk has expired. You are being redirected to Remember the Milk so that you can re-authorise this page.");
 								authenticateUser();
 							}
 						});
