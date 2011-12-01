@@ -90,9 +90,7 @@
 				function ensureTimeline(callback) {
 					if(!timeline) {
 						apiCall("rtm.timelines.create", {}, true, function(data) {
-							console.log(data.rsp.timeline);
 							timeline = data.rsp.timeline;
-							
 							callback();
 						});
 					} else {
@@ -162,9 +160,19 @@
 				
 				sendbutton.click(function() {
 					var lines = textarea.val().split("\n"),
+						requests = lines.length,
 						i;
+					
 					for(i = 0; i < lines.length; i++) {
-						rtm.addTask(lines[i]);
+						sendbutton.attr("disabled", true);
+						rtm.addTask(lines[i], function(data) {
+							if(data.rsp.stat === "ok") {
+								requests--;
+								if(requests == 0) {
+									sendbutton.attr("disabled", false);
+								}
+							}
+						});
 					}
 				});
 				
@@ -237,6 +245,11 @@
 				padding: 5px;
 				border: 1px solid #CACACA;
 				background-color: #E8EEF7;
+			}
+			
+			img.loader {
+				vetical-align: middle;
+				padding: 5px;
 			}
 			
 			#footer {
