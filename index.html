@@ -133,6 +133,7 @@
 					
 					window[functionName] = function(data) {
 						$("#" + functionName).remove();
+						delete window[functionName];
 						if(callback) {
 							callback(data);
 						}
