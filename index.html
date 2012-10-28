@@ -170,29 +170,28 @@
 				
 				sendbutton.click(function() {
 					var lines = textarea.val().split("\n"),
-						requests = 0,
-						i,
-						requestFinished = function() {
-							requests--;
-							if(requests == 0) {
+						sendTask = function (index) {
+							if(index < lines.length) {
+								var task = $.trim(lines[index]);
+
+								if(task.length > 0) {
+									rtm.addTask(task, function(data) {
+										if(data.rsp.stat === "ok") {
+											sendTask(index + 1, length);
+										}
+									});
+								} else {
+									sendTask(index + 1, length);
+								}
+							} else {
+								// We're done
 								sendbutton.attr("disabled", false);
 							}
 						};
 						
 					sendbutton.attr("disabled", true);
 					
-					for(i = 0; i < lines.length; i++) {
-						if($.trim(lines[i]).length > 0) {
-							requests++;
-							rtm.addTask(lines[i], function(data) {
-								if(data.rsp.stat === "ok") {
-									requestFinished();
-								}
-							});
-						} else {
-							requestFinished();
-						}
-					}
+					sendTask(0);
 				});
 				
 				div.append(textarea).append(savebutton).append(sendbutton);
