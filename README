@@ -2,5 +2,5 @@ This is a simple single page web app to add lists of tasks to Remember the Milk.
 
 To use this you'll need to have a file in the same directory called keys.js with contents like this:
 
-var apiKey = "fkjbfekjbkebwkjbfkebwkfebkjbwf",
-	sharedSecret = "kjbwefkefwbjkkjefw";
+    var apiKey = "fkjbfekjbkebwkjbfkebwkfebkjbwf",
+    	sharedSecret = "kjbwefkefwbjkkjefw";
