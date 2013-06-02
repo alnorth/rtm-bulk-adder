@@ -4,6 +4,7 @@
     <title>RTM Bulk Add</title>
     <meta name="description" content="Store lists of tasks and add them in bulk to Remember the Milk with one click.">
     <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="bootstrap/css/bootstrap-responsive.min.css">
     <link rel="stylesheet" type="text/css" href="css/bulk-add.css">
   </head>
   <body>
@@ -25,8 +26,8 @@
             <p>You can build up task sets by putting a task on each line. Use <a href="https://www.rememberthemilk.com/services/smartadd/">smart add</a> syntax to set due dates, lists, tags, etc.</p>
           </div>
         </div>
-        <div class="row">
-          <div data-bind="foreach: lists" class="list-wrapper span12">
+        <div data-bind="foreach: lists" class="row">
+          <div class="span6">
             <div class="list-box well">
               <h4 data-bind="text: 'Task Set ' + ($index() + 1)" class="title"></h4>
               <textarea data-bind="value: text" class="list"></textarea>
@@ -36,6 +37,8 @@
               </div>
             </div>
           </div>
+        </div>
+        <div class="row">
           <div class="span12">
             <div data-bind="click: addList" class="btn btn-primary"><i class="icon-plus icon-white"></i> Add list</div>
           </div>
