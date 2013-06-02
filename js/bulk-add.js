@@ -1,5 +1,5 @@
 (function() {
-  var Auth, List, ViewModel, getParameterByName, saved, storageKey, vm,
+  var Auth, List, ViewModel, getParameterByName, migrateOldValues, saved, storageKey, vm,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty;
 
@@ -16,6 +16,35 @@
       return decodeURIComponent(results[1].replace(/\+/g, ' '));
     } else {
       return '';
+    }
+  };
+
+  migrateOldValues = function() {
+    var i, listCount, _ref, _ref1;
+
+    listCount = localStorage.getItem('numberOfLists');
+    if (listCount != null) {
+      return {
+        auth: {
+          username: (_ref = localStorage.getItem('username')) != null ? _ref : '',
+          token: (_ref1 = localStorage.getItem('token')) != null ? _ref1 : null
+        },
+        lists: (function() {
+          var _i, _ref2, _results;
+
+          _results = [];
+          for (i = _i = 0, _ref2 = listCount - 1; 0 <= _ref2 ? _i <= _ref2 : _i >= _ref2; i = 0 <= _ref2 ? ++_i : --_i) {
+            _results.push({
+              text: localStorage.getItem('list' + i)
+            });
+          }
+          return _results;
+        })()
+      };
+    } else {
+      return {
+        lists: [{}]
+      };
     }
   };
 
@@ -341,9 +370,7 @@
   if (saved != null) {
     saved = JSON.parse(saved);
   } else {
-    saved = {
-      lists: [{}]
-    };
+    saved = migrateOldValues();
   }
 
   vm = new ViewModel(saved);

@@ -1,12 +1,22 @@
 storageKey = 'data-v2'
 
-getParameterByName = (name)->
-    name = name.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]')
-    regexS = '[\\?&]' + name + '=([^&#]*)'
-    regex = new RegExp(regexS)
-    results = regex.exec(window.location.href)
+getParameterByName = (name) ->
+  name = name.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]')
+  regexS = '[\\?&]' + name + '=([^&#]*)'
+  regex = new RegExp(regexS)
+  results = regex.exec(window.location.href)
 
-    if results? then decodeURIComponent(results[1].replace(/\+/g, ' ')) else ''
+  if results? then decodeURIComponent(results[1].replace(/\+/g, ' ')) else ''
+
+migrateOldValues = ->
+  listCount = localStorage.getItem('numberOfLists')
+  if listCount?
+    auth:
+      username: localStorage.getItem('username') ? ''
+      token: localStorage.getItem('token') ? null
+    lists: text: localStorage.getItem('list' + i) for i in [0..(listCount - 1)]
+  else
+    lists: [{}]
 
 ko.bindingHandlers.showModal =
   init: (element, valueAccessor) ->,
@@ -51,7 +61,7 @@ class List
     @sending true
     sendTask 0
 
-  toJSON: () ->
+  toJSON: ->
     copy = ko.toJS(this)
     delete copy.vm
     delete copy.sending
@@ -85,7 +95,7 @@ class Auth
 
     values["api_sig"] = hex_md5(sharedSecret + keysAndValues);
 
-  redirectToRTM: () =>
+  redirectToRTM: =>
     url = "http://www.rememberthemilk.com/services/auth/"
     qs = api_key: apiKey, perms: "write"
 
@@ -167,7 +177,7 @@ class Auth
     else
       callback()
 
-  toJSON: () ->
+  toJSON: ->
     copy = ko.toJS(this)
     delete copy.vm
     delete copy.loggedIn
@@ -201,7 +211,7 @@ class ViewModel
   save: ->
     localStorage.setItem(storageKey, ko.toJSON(this))
 
-  toJSON: () ->
+  toJSON: ->
     copy = ko.toJS(this)
     delete copy.fatalError
     delete copy.loading
@@ -212,7 +222,8 @@ saved = localStorage.getItem(storageKey)
 if saved?
   saved = JSON.parse(saved)
 else
-  saved = lists: [{}]
+  # migrateOldValues will either load values from a previous version, or give an empty object.
+  saved = migrateOldValues()
 vm = new ViewModel(saved)
 ko.applyBindings(vm)
 vm.load()
