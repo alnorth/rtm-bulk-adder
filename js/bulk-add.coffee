@@ -150,19 +150,22 @@ class Auth
       else
         @vm.fatalError('There was a problem getting a token from Remember the Milk: ' + data.rsp.err.msg)
 
-  checkToken: () ->
+  checkToken: (callback) ->
     @apiCall "rtm.auth.checkToken", auth_token: @token(), false, (data) =>
       if data.rsp.stat is "ok"
         @loggedIn(true)
       else
         @tokenExpired(true)
+      callback()
 
-  ensureToken: () ->
+  ensureToken: (callback) ->
     frob = getParameterByName('frob')
     if frob isnt ""
       @populateFromFrob(frob)
     else if @token()? and @username()?
-      @checkToken()
+      @checkToken(callback)
+    else
+      callback()
 
   toJSON: () ->
     copy = ko.toJS(this)
@@ -182,9 +185,12 @@ class ViewModel
       for list in saved.lists
         @lists.push(new List(this, list))
 
-    @loading = ko.computed(() => !(@auth.loggedIn() or @auth.tokenExpired()))
+    @loading = ko.observable(true)
 
     @lists.subscribe(=> @save())
+
+  load: ->
+    @auth.ensureToken(=> @loading false)
 
   addList: ->
     @lists.push(new List(this))
@@ -209,4 +215,4 @@ else
   saved = lists: [{}]
 vm = new ViewModel(saved)
 ko.applyBindings(vm)
-vm.auth.ensureToken()
+vm.load()

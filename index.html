@@ -45,7 +45,7 @@
         </footer>
       </div>
     </div>
-    <div data-bind="showModal: !auth.loggedIn()" class="modal fade hide">
+    <div data-bind="showModal: !auth.loggedIn() &amp;&amp; !loading()" class="modal fade hide">
       <div class="modal-header">
         <h3>Remember the Milk</h3>
       </div>

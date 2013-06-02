@@ -237,28 +237,31 @@
       });
     };
 
-    Auth.prototype.checkToken = function() {
+    Auth.prototype.checkToken = function(callback) {
       var _this = this;
 
       return this.apiCall("rtm.auth.checkToken", {
         auth_token: this.token()
       }, false, function(data) {
         if (data.rsp.stat === "ok") {
-          return _this.loggedIn(true);
+          _this.loggedIn(true);
         } else {
-          return _this.tokenExpired(true);
+          _this.tokenExpired(true);
         }
+        return callback();
       });
     };
 
-    Auth.prototype.ensureToken = function() {
+    Auth.prototype.ensureToken = function(callback) {
       var frob;
 
       frob = getParameterByName('frob');
       if (frob !== "") {
         return this.populateFromFrob(frob);
       } else if ((this.token() != null) && (this.username() != null)) {
-        return this.checkToken();
+        return this.checkToken(callback);
+      } else {
+        return callback();
       }
     };
 
@@ -294,13 +297,19 @@
           this.lists.push(new List(this, list));
         }
       }
-      this.loading = ko.computed(function() {
-        return !(_this.auth.loggedIn() || _this.auth.tokenExpired());
-      });
+      this.loading = ko.observable(true);
       this.lists.subscribe(function() {
         return _this.save();
       });
     }
+
+    ViewModel.prototype.load = function() {
+      var _this = this;
+
+      return this.auth.ensureToken(function() {
+        return _this.loading(false);
+      });
+    };
 
     ViewModel.prototype.addList = function() {
       return this.lists.push(new List(this));
@@ -341,6 +350,6 @@
 
   ko.applyBindings(vm);
 
-  vm.auth.ensureToken();
+  vm.load();
 
 }).call(this);

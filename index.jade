@@ -52,7 +52,7 @@ html(lang="en")
             |  | 
             a(href="http://www.alnorth.com") blog
 
-    .modal.fade.hide(data-bind="showModal: !auth.loggedIn()")
+    .modal.fade.hide(data-bind="showModal: !auth.loggedIn() && !loading()")
       .modal-header
         h3 Remember the Milk
       .modal-body
