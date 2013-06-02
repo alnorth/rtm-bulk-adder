@@ -31,8 +31,9 @@ html(lang="en")
 
     .container.row
       .span12
-        div(data-bind="text: ko.toJSON($root)")
+        pre(data-bind="text: ko.toJSON($root, null, 2)")
 
     script(src="js/knockout-2.2.1.js")
     script(src="js/md5-min.js")
+    script(src="keys.js")
     script(src="js/bulk-add.js")

@@ -26,11 +26,12 @@
     </div>
     <div class="container row">
       <div class="span12">
-        <div data-bind="text: ko.toJSON($root)"></div>
+        <pre data-bind="text: ko.toJSON($root, null, 2)"></pre>
       </div>
     </div>
     <script src="js/knockout-2.2.1.js"></script>
     <script src="js/md5-min.js"></script>
+    <script src="keys.js"></script>
     <script src="js/bulk-add.js"></script>
   </body>
 </html>

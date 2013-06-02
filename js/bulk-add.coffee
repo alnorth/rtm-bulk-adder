@@ -1,24 +1,37 @@
+storageKey = 'data-v2'
+
 class List
-  constructor: ->
-    @text = ko.observable("")
+  constructor: (vm, saved) ->
+    console.log saved
+    saved ?= {}
+    @text = ko.observable(saved.text ? "")
     @sending = ko.observable(false)
+
+    @text.subscribe((newValue) -> vm.save())
 
   send: ->
     if !@sending()
       @sending(true)
-      console.log "sending"
 
 class ViewModel
-  constructor: ->
+  constructor: (saved) ->
     @lists = ko.observableArray()
+    if saved? and saved.lists?
+      for list in saved.lists
+        @lists.push(new List(this, list))
 
   addList: ->
-    console.log "add", arguments
-    @lists.push(new List())
+    @lists.push(new List(this))
 
   remove: (list) =>
-    console.log "remove", arguments
-    console.log list, @lists
     @lists.remove(list)
 
-ko.applyBindings(new ViewModel())
+  save: ->
+    localStorage.setItem(storageKey, ko.toJSON(this))
+
+saved = localStorage.getItem(storageKey)
+if saved?
+  saved = JSON.parse(saved)
+else
+  saved = {}
+ko.applyBindings(new ViewModel(saved))
