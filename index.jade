@@ -5,35 +5,54 @@ html(lang="en")
     link(rel="stylesheet", type="text/css", href="bootstrap/css/bootstrap.min.css")
     link(rel="stylesheet", type="text/css", href="css/bulk-add.css")
   body
-    .container.row
-      .span12
-        | You can build up lists by putting a task on each line. Use 
-        a(href="https://www.rememberthemilk.com/services/smartadd/") smart add
-        |  syntax to set due dates, lists, tags, etc.
+    .loading(data-bind="visible: loading()") Loading ...
 
-    .container.row
-      .list-wrapper.span12(data-bind="foreach: lists")
-        .list-box.well
-          h4.title(data-bind="text: 'List ' + ($index() + 1)")
-          textarea.list(data-bind="value: text")
-          div
-            .btn(data-bind="click: send, css: { disabled: sending }")
-              i.icon-upload
-              |  Send to RTM
-            .btn.btn-danger(data-bind="click: $root.remove")
-              i.icon-remove.icon-white
-              |  Delete
-      
-      .span12
-        .btn.btn-primary(data-bind="click: addList")
-          i.icon-plus.icon-white
-          |  Add list
+    .loaded(data-bind="css: { visible: !loading() }")
+      .container.row
+        .span12
+          | You can build up lists by putting a task on each line. Use 
+          a(href="https://www.rememberthemilk.com/services/smartadd/") smart add
+          |  syntax to set due dates, lists, tags, etc.
 
-    .container.row
-      .span12
-        pre(data-bind="text: ko.toJSON($root, null, 2)")
+      .container.row
+        .list-wrapper.span12(data-bind="foreach: lists")
+          .list-box.well
+            h4.title(data-bind="text: 'List ' + ($index() + 1)")
+            textarea.list(data-bind="value: text")
+            div
+              .btn(data-bind="click: send, css: { disabled: sending }")
+                i.icon-upload
+                |  Send to RTM
+              .btn.btn-danger(data-bind="click: $root.remove")
+                i.icon-remove.icon-white
+                |  Delete
+        
+        .span12
+          .btn.btn-primary(data-bind="click: addList")
+            i.icon-plus.icon-white
+            |  Add list
 
+      .container.row
+        .span12
+          pre(data-bind="text: ko.toJSON($root, null, 2)")
+
+      .modal.hide(data-bind="showModal: !auth.loggedIn()")
+        .modal-header
+          button.close(data-dismiss="modal", aria-hidden="true") &times;
+          h3 Remember the Milk
+        .modal-body
+          div(data-bind="visible: auth.tokenExpired()")
+            | Your connection to Remember the Milk has expired. Please log in again.
+          div(data-bind="visible: !auth.tokenExpired()")
+            | In order to use this page properly you must authorise it to access your Remember the Milk account.
+        .modal-footer
+          a.btn.btn-primary(href="#", data-bind="click: auth.authenticateUser")
+            | Log in to Remember the Milk
+
+    script(src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js")
+    script(src="bootstrap/js/bootstrap.min.js")
     script(src="js/knockout-2.2.1.js")
     script(src="js/md5-min.js")
+    script(src="js/rtm.js")
     script(src="keys.js")
     script(src="js/bulk-add.js")
