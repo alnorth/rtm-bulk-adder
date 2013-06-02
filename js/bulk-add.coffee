@@ -54,6 +54,7 @@ class List
   toJSON: () ->
     copy = ko.toJS(this)
     delete copy.vm
+    delete copy.sending
     copy
 
 class Auth
@@ -62,12 +63,20 @@ class Auth
       vm.fatalError('apiKey and sharedSecret have not been defined. Have you added a keys.js file as described in the readme?')
 
     @token = ko.observable(saved.token ? null)
-    @username = ko.observable(saved.username ? "")
+    @username = ko.observable(saved.username ? '')
     @loggedIn = ko.observable(false)
     @tokenExpired = ko.observable(false)
     @timeline = ko.observable(null)
     @apiCallCount = 0
     @vm = vm
+
+  logOut: =>
+    @loggedIn(false)
+    @token(null)
+    @username('')
+    @timeline(null)
+
+    @vm.save()
 
   addSig: (values) ->
     sortedKeys = (k for own k of values)

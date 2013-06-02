@@ -90,6 +90,7 @@
 
       copy = ko.toJS(this);
       delete copy.vm;
+      delete copy.sending;
       return copy;
     };
 
@@ -100,19 +101,28 @@
   Auth = (function() {
     function Auth(vm, saved) {
       this.redirectToRTM = __bind(this.redirectToRTM, this);
+      this.logOut = __bind(this.logOut, this);
       var _ref, _ref1;
 
       if (!((window.apiKey != null) && (window.sharedSecret != null))) {
         vm.fatalError('apiKey and sharedSecret have not been defined. Have you added a keys.js file as described in the readme?');
       }
       this.token = ko.observable((_ref = saved.token) != null ? _ref : null);
-      this.username = ko.observable((_ref1 = saved.username) != null ? _ref1 : "");
+      this.username = ko.observable((_ref1 = saved.username) != null ? _ref1 : '');
       this.loggedIn = ko.observable(false);
       this.tokenExpired = ko.observable(false);
       this.timeline = ko.observable(null);
       this.apiCallCount = 0;
       this.vm = vm;
     }
+
+    Auth.prototype.logOut = function() {
+      this.loggedIn(false);
+      this.token(null);
+      this.username('');
+      this.timeline(null);
+      return this.vm.save();
+    };
 
     Auth.prototype.addSig = function(values) {
       var k, key, keysAndValues, sortedKeys;

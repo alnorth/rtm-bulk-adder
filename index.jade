@@ -5,14 +5,24 @@ html(lang="en")
     link(rel="stylesheet", type="text/css", href="bootstrap/css/bootstrap.min.css")
     link(rel="stylesheet", type="text/css", href="css/bulk-add.css")
   body
+    .navbar.navbar-inverse.navbar-fixed-top
+      .navbar-inner
+        .container
+          a.brand(href="#") RTM Bulk Add
+          ul.nav.pull-right(data-bind="visible: auth.loggedIn()")
+            p.nav.navbar-text(data-bind="text: auth.username()")
+            li
+              a(data-bind="click: auth.logOut") Sign Out
+
     .loading(data-bind="visible: loading()") Loading ...
 
-    .loaded(data-bind="css: { visible: !loading() }")
+    .main.loaded(data-bind="css: { visible: !loading() }")
       .container.row
         .span12
-          | You can build up lists by putting a task on each line. Use 
-          a(href="https://www.rememberthemilk.com/services/smartadd/") smart add
-          |  syntax to set due dates, lists, tags, etc.
+          p
+            | You can build up lists by putting a task on each line. Use 
+            a(href="https://www.rememberthemilk.com/services/smartadd/") smart add
+            |  syntax to set due dates, lists, tags, etc.
 
       .container.row
         .list-wrapper.span12(data-bind="foreach: lists")
@@ -36,17 +46,17 @@ html(lang="en")
         .span12
           pre(data-bind="text: ko.toJSON($root, null, 2)")
 
-      .modal.fade.hide(data-bind="showModal: !auth.loggedIn()")
-        .modal-header
-          h3 Remember the Milk
-        .modal-body
-          div(data-bind="visible: auth.tokenExpired()")
-            | Your connection to Remember the Milk has expired. Please log in again.
-          div(data-bind="visible: !auth.tokenExpired()")
-            | In order to use this page properly you must authorise it to access your Remember the Milk account.
-        .modal-footer
-          a.btn.btn-primary(href="#", data-bind="click: auth.redirectToRTM")
-            | Log in to Remember the Milk
+    .modal.fade.hide(data-bind="showModal: !auth.loggedIn()")
+      .modal-header
+        h3 Remember the Milk
+      .modal-body
+        div(data-bind="visible: auth.tokenExpired()")
+          | Your connection to Remember the Milk has expired. Please log in again.
+        div(data-bind="visible: !auth.tokenExpired()")
+          | In order to use this page properly you must authorise it to access your Remember the Milk account.
+      .modal-footer
+        a.btn.btn-primary(href="#", data-bind="click: auth.redirectToRTM")
+          | Log in to Remember the Milk
 
     script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js")
     script(src="bootstrap/js/bootstrap.min.js")
