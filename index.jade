@@ -52,15 +52,18 @@ html(lang="en")
             |  | 
             a(href="http://www.alnorth.com") blog
 
-    .modal.fade.hide(data-bind="showModal: !auth.loggedIn() && !loading()")
+    .modal.fade.hide(data-bind="showModal: fatalError() || (!auth.loggedIn() && !loading())")
       .modal-header
         h3 Remember the Milk
       .modal-body
-        div(data-bind="visible: auth.tokenExpired()")
+        div(data-bind="visible: fatalError()")
+          span Error encountered: 
+          span(data-bind="text: fatalError()")
+        div(data-bind="visible: !fatalError() && auth.tokenExpired()")
           | Your connection to Remember the Milk has expired. Please log in again.
-        div(data-bind="visible: !auth.tokenExpired()")
+        div(data-bind="visible: !fatalError() && !auth.tokenExpired()")
           | In order to use this page properly you must authorise it to access your Remember the Milk account.
-      .modal-footer
+      .modal-footer(data-bind="visible: !fatalError()")
         a.btn.btn-primary(href="#", data-bind="click: auth.redirectToRTM")
           | Log in to Remember the Milk
 

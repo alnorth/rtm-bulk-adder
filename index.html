@@ -45,15 +45,16 @@
         </footer>
       </div>
     </div>
-    <div data-bind="showModal: !auth.loggedIn() &amp;&amp; !loading()" class="modal fade hide">
+    <div data-bind="showModal: fatalError() || (!auth.loggedIn() &amp;&amp; !loading())" class="modal fade hide">
       <div class="modal-header">
         <h3>Remember the Milk</h3>
       </div>
       <div class="modal-body">
-        <div data-bind="visible: auth.tokenExpired()">Your connection to Remember the Milk has expired. Please log in again.</div>
-        <div data-bind="visible: !auth.tokenExpired()">In order to use this page properly you must authorise it to access your Remember the Milk account.</div>
+        <div data-bind="visible: fatalError()"><span>Error encountered: </span><span data-bind="text: fatalError()"></span></div>
+        <div data-bind="visible: !fatalError() &amp;&amp; auth.tokenExpired()">Your connection to Remember the Milk has expired. Please log in again.</div>
+        <div data-bind="visible: !fatalError() &amp;&amp; !auth.tokenExpired()">In order to use this page properly you must authorise it to access your Remember the Milk account.</div>
       </div>
-      <div class="modal-footer"><a href="#" data-bind="click: auth.redirectToRTM" class="btn btn-primary">Log in to Remember the Milk</a></div>
+      <div data-bind="visible: !fatalError()" class="modal-footer"><a href="#" data-bind="click: auth.redirectToRTM" class="btn btn-primary">Log in to Remember the Milk</a></div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>
