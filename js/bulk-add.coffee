@@ -184,6 +184,8 @@ class ViewModel
 
     @loading = ko.computed(() => !(@auth.loggedIn() or @auth.tokenExpired()))
 
+    @lists.subscribe(=> @save())
+
   addList: ->
     @lists.push(new List(this))
 
@@ -204,7 +206,7 @@ saved = localStorage.getItem(storageKey)
 if saved?
   saved = JSON.parse(saved)
 else
-  saved = {}
+  saved = lists: [{}]
 vm = new ViewModel(saved)
 ko.applyBindings(vm)
 vm.auth.ensureToken()

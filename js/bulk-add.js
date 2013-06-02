@@ -297,6 +297,9 @@
       this.loading = ko.computed(function() {
         return !(_this.auth.loggedIn() || _this.auth.tokenExpired());
       });
+      this.lists.subscribe(function() {
+        return _this.save();
+      });
     }
 
     ViewModel.prototype.addList = function() {
@@ -329,7 +332,9 @@
   if (saved != null) {
     saved = JSON.parse(saved);
   } else {
-    saved = {};
+    saved = {
+      lists: [{}]
+    };
   }
 
   vm = new ViewModel(saved);
