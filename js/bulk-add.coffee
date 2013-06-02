@@ -167,7 +167,10 @@ class Auth
   toJSON: () ->
     copy = ko.toJS(this)
     delete copy.vm
-    delete copy.rtm
+    delete copy.loggedIn
+    delete copy.tokenExpired
+    delete copy.timeline
+    delete copy.apiCallCount
     copy
 
 class ViewModel
@@ -189,6 +192,12 @@ class ViewModel
 
   save: ->
     localStorage.setItem(storageKey, ko.toJSON(this))
+
+  toJSON: () ->
+    copy = ko.toJS(this)
+    delete copy.fatalError
+    delete copy.loading
+    copy
 
 
 saved = localStorage.getItem(storageKey)

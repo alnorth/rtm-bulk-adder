@@ -18,29 +18,31 @@
     </div>
     <div data-bind="visible: loading()" class="loading">Loading ...</div>
     <div data-bind="css: { visible: !loading() }" class="main loaded">
-      <div class="container row">
-        <div class="span12">
-          <p>You can build up lists by putting a task on each line. Use <a href="https://www.rememberthemilk.com/services/smartadd/">smart add</a> syntax to set due dates, lists, tags, etc.</p>
-        </div>
-      </div>
-      <div class="container row">
-        <div data-bind="foreach: lists" class="list-wrapper span12">
-          <div class="list-box well">
-            <h4 data-bind="text: 'List ' + ($index() + 1)" class="title"></h4>
-            <textarea data-bind="value: text" class="list"></textarea>
-            <div>
-              <div data-bind="click: send, css: { disabled: sending }" class="btn"><i class="icon-upload"></i> Send to RTM</div>
-              <div data-bind="click: $root.remove" class="btn btn-danger"><i class="icon-remove icon-white"></i> Delete</div>
-            </div>
+      <div class="container">
+        <div class="row">
+          <div class="span12">
+            <p>You can build up lists by putting a task on each line. Use <a href="https://www.rememberthemilk.com/services/smartadd/">smart add</a> syntax to set due dates, lists, tags, etc.</p>
           </div>
         </div>
-        <div class="span12">
-          <div data-bind="click: addList" class="btn btn-primary"><i class="icon-plus icon-white"></i> Add list</div>
+        <div class="row">
+          <div data-bind="foreach: lists" class="list-wrapper span12">
+            <div class="list-box well">
+              <h4 data-bind="text: 'List ' + ($index() + 1)" class="title"></h4>
+              <textarea data-bind="value: text" class="list"></textarea>
+              <div>
+                <div data-bind="click: send, css: { disabled: sending }" class="btn"><i class="icon-upload"></i> Send to RTM</div>
+                <div data-bind="click: $root.remove" class="btn btn-danger"><i class="icon-remove icon-white"></i> Delete</div>
+              </div>
+            </div>
+          </div>
+          <div class="span12">
+            <div data-bind="click: addList" class="btn btn-primary"><i class="icon-plus icon-white"></i> Add list</div>
+          </div>
         </div>
-      </div>
-      <div class="container row">
-        <div class="span12">
-          <pre data-bind="text: ko.toJSON($root, null, 2)"></pre>
+        <div class="row">
+          <div class="span12">
+            <pre data-bind="text: ko.toJSON($root, null, 2)"></pre>
+          </div>
         </div>
       </div>
     </div>

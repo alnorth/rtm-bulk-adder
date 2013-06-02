@@ -267,7 +267,10 @@
 
       copy = ko.toJS(this);
       delete copy.vm;
-      delete copy.rtm;
+      delete copy.loggedIn;
+      delete copy.tokenExpired;
+      delete copy.timeline;
+      delete copy.apiCallCount;
       return copy;
     };
 
@@ -306,6 +309,15 @@
 
     ViewModel.prototype.save = function() {
       return localStorage.setItem(storageKey, ko.toJSON(this));
+    };
+
+    ViewModel.prototype.toJSON = function() {
+      var copy;
+
+      copy = ko.toJS(this);
+      delete copy.fatalError;
+      delete copy.loading;
+      return copy;
     };
 
     return ViewModel;
