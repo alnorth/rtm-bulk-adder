@@ -43,11 +43,14 @@ html(lang="en")
               i.icon-plus.icon-white
               |  Add list
 
-        .row
-          .span12
-            pre(data-bind="text: ko.toJSON($root, null, 2)")
-
-
+        footer
+          div.pull-right
+            | This product uses the Remember The Milk API but is not endorsed or certified by Remember The Milk.
+          div
+            | by 
+            a(href="http://www.twitter.com/al_north") @al_north
+            |  | 
+            a(href="http://www.alnorth.com") blog
 
     .modal.fade.hide(data-bind="showModal: !auth.loggedIn()")
       .modal-header

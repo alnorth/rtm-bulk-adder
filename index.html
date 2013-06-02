@@ -39,11 +39,10 @@
             <div data-bind="click: addList" class="btn btn-primary"><i class="icon-plus icon-white"></i> Add list</div>
           </div>
         </div>
-        <div class="row">
-          <div class="span12">
-            <pre data-bind="text: ko.toJSON($root, null, 2)"></pre>
-          </div>
-        </div>
+        <footer>
+          <div class="pull-right">This product uses the Remember The Milk API but is not endorsed or certified by Remember The Milk.</div>
+          <div>by <a href="http://www.twitter.com/al_north">@al_north</a> | <a href="http://www.alnorth.com">blog</a></div>
+        </footer>
       </div>
     </div>
     <div data-bind="showModal: !auth.loggedIn()" class="modal fade hide">
