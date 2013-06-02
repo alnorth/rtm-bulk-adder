@@ -21,14 +21,14 @@ html(lang="en")
         .row
           .span12
             p
-              | You can build up lists by putting a task on each line. Use 
+              | You can build up task sets by putting a task on each line. Use 
               a(href="https://www.rememberthemilk.com/services/smartadd/") smart add
               |  syntax to set due dates, lists, tags, etc.
 
         .row
           .list-wrapper.span12(data-bind="foreach: lists")
             .list-box.well
-              h4.title(data-bind="text: 'List ' + ($index() + 1)")
+              h4.title(data-bind="text: 'Task Set ' + ($index() + 1)")
               textarea.list(data-bind="value: text")
               div
                 .btn(data-bind="click: send, css: { disabled: sending }")
