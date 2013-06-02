@@ -1,0 +1,38 @@
+doctype 5
+html(lang="en")
+  head
+    title RTM Bulk Add
+    link(rel="stylesheet", type="text/css", href="bootstrap/css/bootstrap.min.css")
+    link(rel="stylesheet", type="text/css", href="css/bulk-add.css")
+  body
+    .container.row
+      .span12
+        | You can build up lists by putting a task on each line. Use 
+        a(href="https://www.rememberthemilk.com/services/smartadd/") smart add
+        |  syntax to set due dates, lists, tags, etc.
+
+    .container.row
+      .list-wrapper.span12(data-bind="foreach: lists")
+        .list-box.well
+          h4.title(data-bind="text: 'List ' + ($index() + 1)")
+          textarea.list(data-bind="value: text")
+          div
+            .btn(data-bind="click: send, css: { disabled: sending }")
+              i.icon-upload
+              |  Send to RTM
+            .btn.btn-danger(data-bind="click: $root.remove")
+              i.icon-remove.icon-white
+              |  Delete
+      
+      .span12
+        .btn.btn-primary(data-bind="click: addList")
+          i.icon-plus.icon-white
+          |  Add list
+
+    .container.row
+      .span12
+        div(data-bind="text: ko.toJSON($root)")
+
+    script(src="js/knockout-2.2.1.js")
+    script(src="js/md5-min.js")
+    script(src="js/bulk-add.js")

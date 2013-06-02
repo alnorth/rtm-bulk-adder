@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta name="HandheldFriendly" content="true" />
+		<meta name="viewport" content="width=device-width, height=device-height, user-scalable=no" />
+		<title>RTM bulk add</title>
+		<meta name="description" content="Store lists of tasks and add them in bulk to Remember the Milk in one click.">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js"></script>
+		<script src="md5-min.js"></script>
+		<script src="keys.js"></script>
+		<script type="text/javascript">
+			function RTM(apiKey, sharedSecret) {
+			
+				var token,
+					username,
+					timeline,
+					apiCallCount = 0;
+			
+				function addSig(values) {
+					var sortedKeys = [],
+						key,
+						concatenatedKeysAndValues = "",
+						i;
+					for(key in values) {
+						if(values.hasOwnProperty(key)) {
+							sortedKeys.push(key);
+						}
+					}
+					sortedKeys.sort();
+					
+					for(i = 0; i < sortedKeys.length; i++) {
+						key = sortedKeys[i];
+						concatenatedKeysAndValues += key;
+						concatenatedKeysAndValues += values[key];
+					}
+					
+					values["api_sig"] = hex_md5(sharedSecret + concatenatedKeysAndValues);
+				}
+				
+				function authenticateUser() {
+					var url = "http://www.rememberthemilk.com/services/auth/",
+						qs = {api_key: apiKey, perms: "write"};
+					
+					addSig(qs);
+					
+					url += "?" + $.param(qs);
+					
+					document.location = url;
+				}
+				
+				function getParameterByName(name) {
+					name = name.replace(/[\[]/, "\\\[").replace(/[\]]/, "\\\]");
+					var regexS = "[\\?&]" + name + "=([^&#]*)";
+					var regex = new RegExp(regexS);
+					var results = regex.exec(window.location.href);
+					if(results == null)
+						return "";
+					else
+						return decodeURIComponent(results[1].replace(/\+/g, " "));
+				}
+				
+				function ensureToken(callback) {
+					var frob = getParameterByName("frob"),
+						that = this;
+									
+					if(frob !== "") {
+						apiCall("rtm.auth.getToken", {frob: frob}, false, function(data) {
+							if(data.rsp.stat === "ok") {
+								localStorage.setItem("token", data.rsp.auth.token);
+								localStorage.setItem("username", data.rsp.auth.user.username);
+								
+								token = data.rsp.auth.token;
+								username = data.rsp.auth.user.username;
+								
+								// Go to this page without frob on the query string so that people won't bookmark it with the frob
+								document.location = document.location.href.split("?")[0];
+							} else {
+								alert("There was a problem getting a token from Remember the Milk: " + data.rsp.err.msg);
+							}
+						});
+					} else if(!localStorage.getItem("token") || !localStorage.getItem("username")) {
+						alert("In order to use this page properly you must authorise it to access your Remember the Milk account. You are being redirected to Remember the Milk so that you can do this.");
+						authenticateUser();
+					} else {
+						apiCall("rtm.auth.checkToken", {auth_token: localStorage.getItem("token")}, false, function(data) {
+							if(data.rsp.stat === "ok") {
+								token = localStorage.getItem("token");
+								username = localStorage.getItem("username");
+								callback();
+							} else {
+								alert("Your token from Remember the Milk has expired. You are being redirected to Remember the Milk so that you can re-authorise this page.");
+								authenticateUser();
+							}
+						});
+					}
+				}
+				this.ensureToken = ensureToken;
+				
+				function ensureTimeline(callback) {
+					if(!timeline) {
+						apiCall("rtm.timelines.create", {}, true, function(data) {
+							timeline = data.rsp.timeline;
+							callback();
+						});
+					} else {
+						callback();
+					}
+				}
+				
+				function addTask(text, callback) {
+					ensureTimeline(function() {
+						apiCall("rtm.tasks.add", {timeline: timeline, name: text, parse: 1}, true, callback);
+					});
+				}
+				this.addTask = addTask;
+				
+				function apiCall(method, params, authenticated, callback) {
+					var url = "http://api.rememberthemilk.com/services/rest/",
+						functionName = "rtmJsonp" + (new Date()).getTime() + "_" + apiCallCount;
+						
+					apiCallCount++;
+					
+					params = params || {};
+					params["format"] = "json";
+					params["method"] = method;
+					params["api_key"] = apiKey;
+					params["callback"] = functionName;
+					if(authenticated) {
+						params["auth_token"] = token;
+					}
+					
+					addSig(params);
+					url += "?" + $.param(params);
+					
+					window[functionName] = function(data) {
+						$("#" + functionName).remove();
+						delete window[functionName];
+						if(callback) {
+							callback(data);
+						}
+					}
+					
+					var head = document.getElementsByTagName('head')[0];
+					var script = document.createElement("script");
+					script.type = "text/javascript";
+					script.src = url;
+					script.id = functionName;
+					
+					head.appendChild(script);
+				}
+				this.apiCall = apiCall;
+				
+				function getUsername() {
+					return username;
+				}
+				this.getUsername = getUsername;
+			}
+			
+			function createTextbox(i, rtm) {
+				var div = $("<div />").text("List " + (i + 1)),
+					textarea = $("<textarea></textarea>"),
+					savebutton = $("<input />", {type: "button", value: "Save"}),
+					sendbutton = $("<input />", {type: "button", value: "Send to RTM"});
+					
+				textarea.val(localStorage.getItem("list" + i));
+					
+				savebutton.click(function() {
+					localStorage.setItem("list" + i, textarea.val());
+				});
+				
+				sendbutton.click(function() {
+					var lines = textarea.val().split("\n"),
+						sendTask = function (index) {
+							if(index < lines.length) {
+								var task = $.trim(lines[index]);
+
+								if(task.length > 0) {
+									rtm.addTask(task, function(data) {
+										if(data.rsp.stat === "ok") {
+											sendTask(index + 1, length);
+										}
+									});
+								} else {
+									sendTask(index + 1, length);
+								}
+							} else {
+								// We're done
+								sendbutton.attr("disabled", false);
+							}
+						};
+						
+					sendbutton.attr("disabled", true);
+					
+					sendTask(0);
+				});
+				
+				div.append(textarea).append(savebutton).append(sendbutton);
+				$("#lists").append(div);
+			}
+			
+			function redrawTextboxes(rtm, numberOfLists) {
+				var i;
+				$("#lists").empty();
+				for(i = 0; i < numberOfLists; i++) {
+					createTextbox(i, rtm);
+				}
+			}
+			
+			$(function() {
+				
+				var rtm = new RTM(apiKey, sharedSecret),
+					numberOfLists = localStorage.getItem("numberOfLists"),
+					i;
+				
+				rtm.ensureToken(function() {
+					$("#username").text(rtm.getUsername());
+				
+					if(!numberOfLists) {
+						numberOfLists = 3;
+						localStorage.setItem("numberOfLists", numberOfLists);
+					}
+					
+					for(i = 1; i <= 30; i++) {
+						$("#numberOfLists").append($("<option />", {value: i}).text(i));
+					}
+					$("#numberOfLists").val(numberOfLists);
+					$("#numberOfLists").change(function() {
+						localStorage.setItem("numberOfLists", $("#numberOfLists").val());
+						redrawTextboxes(rtm, $("#numberOfLists").val());
+					});
+					
+					redrawTextboxes(rtm, numberOfLists);
+				});
+			});
+		</script>
+		<style type="text/css">
+			body {
+				max-width: 700px;
+				margin-left: auto;
+				margin-right: auto;
+			}
+			
+			.username {
+				text-align: right;
+				padding-bottom: 20px;
+			}
+			
+			#username {
+				font-weight: bold;
+			}
+			
+			.numberOfLists {
+				padding-bottom: 20px;
+			}
+			
+			#lists textarea {
+				display: block;
+				width: 100%;
+				height: 7em;
+			}
+			
+			#lists input {
+				margin-top: 5px;
+				margin-right: 30px;
+			}
+			
+			#lists div {
+				margin-bottom: 30px;
+				padding: 5px;
+				border: 1px solid #CACACA;
+				background-color: #E8EEF7;
+			}
+			
+			img.loader {
+				vetical-align: middle;
+				padding: 5px;
+			}
+			
+			#footer {
+				text-align: center;
+				font-size: x-small;
+			}
+			
+			#footer a {
+				text-decoration: none;
+				color: black;
+			}
+			
+			#footer a:hover {
+				text-decoration: underline;
+			}
+		</style>
+		<script type="text/javascript">
+		
+		if(googleAnalyticsAccount) {
+			var _gaq = _gaq || [];
+			_gaq.push(['_setAccount', googleAnalyticsAccount]);
+			_gaq.push(['_trackPageview']);
+
+			(function() {
+				var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+				ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+				var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+			})();
+		}
+		
+		</script>
+	</head>
+	<body>
+		<div class="username">
+			Logged in as <span id="username"></span>
+		</div>
+		<p>
+			You can build up lists by putting a task on each line. Use <a href="https://www.rememberthemilk.com/services/smartadd/">smart add</a> syntax to set due dates, lists, tags, etc.
+		</p>
+		<div class="numberOfLists">
+			Number of lists: <select id="numberOfLists"></select>
+		</div>
+		<div id="lists">
+		</div>
+		<div id="footer">
+			<p>
+				This product uses the Remember The Milk API but is not endorsed or certified by Remember The Milk.
+			</p>
+			by <a href="http://www.twitter.com/al_north">@al_north</a> | <a href="http://www.alnorth.com/">blog</a>
+		</div>
+	</body>
+</html>	
