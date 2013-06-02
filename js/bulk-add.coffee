@@ -1,5 +1,13 @@
 storageKey = 'data-v2'
 
+getParameterByName = (name)->
+    name = name.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]')
+    regexS = '[\\?&]' + name + '=([^&#]*)'
+    regex = new RegExp(regexS)
+    results = regex.exec(window.location.href)
+
+    if results? then decodeURIComponent(results[1].replace(/\+/g, ' ')) else ''
+
 ko.bindingHandlers.showModal =
   init: (element, valueAccessor) ->,
   update: (element, valueAccessor) ->
@@ -13,32 +21,115 @@ ko.bindingHandlers.showModal =
 
 class List
   constructor: (vm, saved) ->
-    console.log saved
     saved ?= {}
     @text = ko.observable(saved.text ? "")
     @sending = ko.observable(false)
-
+    @vm = vm
     @text.subscribe((newValue) -> vm.save())
 
-  send: ->
+  sendLine: (line, callback) ->
+    @vm.auth.addTask line, (data) ->
+      if data.rsp.stat is "ok"
+        callback()
+
+  send: =>
     if !@sending()
-      @sending(true)
+      lines = @text().split('\n')
+      sendTask = (index) =>
+        if index < lines.length
+          task = $.trim(lines[index])
+
+          if task.length > 0
+            @sendLine task, ->
+              sendTask index + 1, length
+          else
+            sendTask index + 1, length
+        else
+          # We're done
+          @sending false
+    
+    @sending true
+    sendTask 0
+
+  toJSON: () ->
+    copy = ko.toJS(this)
+    delete copy.vm
+    copy
 
 class Auth
   constructor: (vm, saved) ->
-    if window.apiKey? and window.sharedSecret?
-      @rtm = new RTM(window.apiKey, window.sharedSecret)
-    else
+    if not (window.apiKey? and window.sharedSecret?)
       vm.fatalError('apiKey and sharedSecret have not been defined. Have you added a keys.js file as described in the readme?')
 
     @token = ko.observable(saved.token ? null)
     @username = ko.observable(saved.username ? "")
     @loggedIn = ko.observable(false)
     @tokenExpired = ko.observable(false)
+    @timeline = ko.observable(null)
+    @apiCallCount = 0
     @vm = vm
 
+  addSig: (values) ->
+    sortedKeys = (k for own k of values)
+    sortedKeys.sort()
+    keysAndValues = (key + values[key] for key in sortedKeys).join('')
+
+    values["api_sig"] = hex_md5(sharedSecret + keysAndValues);
+
+  redirectToRTM: () =>
+    url = "http://www.rememberthemilk.com/services/auth/"
+    qs = api_key: apiKey, perms: "write"
+
+    @addSig(qs);
+    url += "?" + $.param(qs)
+
+    document.location = url
+
+  ensureTimeline: (callback) ->
+    if not @timeline()?
+      @apiCall "rtm.timelines.create", {}, true, (data) =>
+        @timeline(data.rsp.timeline)
+        callback()
+    else
+      callback()
+  
+  addTask: (text, callback) ->
+    @ensureTimeline =>
+      @apiCall("rtm.tasks.add", {timeline: @timeline(), name: text, parse: 1}, true, callback)
+
+  apiCall: (method, params, authenticated, callback) ->
+    url = "http://api.rememberthemilk.com/services/rest/"
+    functionName = "rtmJsonp" + (new Date()).getTime() + "_" + @apiCallCount
+
+    @apiCallCount++
+    
+    params = params ? {}
+    params["format"] = "json"
+    params["method"] = method
+    params["api_key"] = apiKey
+    params["callback"] = functionName
+    if authenticated
+      params["auth_token"] = @token()
+    
+    @addSig(params)
+    url += "?" + $.param(params)
+    
+    window[functionName] = (data) ->
+      $("#" + functionName).remove()
+      delete window[functionName]
+      if callback?
+        callback data
+    
+    head = $('head')[0]
+    script = document.createElement('script')
+    script.type = 'text/javascript'
+    script.src = url
+    script.id = functionName
+    
+    head.appendChild(script)
+
   populateFromFrob: (frob) ->
-    @rtm.apiCall "rtm.auth.getToken", frob: frob, false, (data) =>
+    @apiCall "rtm.auth.getToken", frob: frob, false, (data) =>
       if data.rsp.stat is "ok"
         @token(data.rsp.auth.token)
         @username(data.rsp.auth.user.username)
@@ -51,21 +142,18 @@ class Auth
         @vm.fatalError('There was a problem getting a token from Remember the Milk: ' + data.rsp.err.msg)
 
   checkToken: () ->
-    @rtm.apiCall "rtm.auth.checkToken", auth_token: @token, false, (data) =>
+    @apiCall "rtm.auth.checkToken", auth_token: @token(), false, (data) =>
       if data.rsp.stat is "ok"
         @loggedIn(true)
       else
         @tokenExpired(true)
 
   ensureToken: () ->
-    frob = @rtm.getParameterByName('frob')
+    frob = getParameterByName('frob')
     if frob isnt ""
-      this.populateFromFrob(frob)
-    else if @token? and @username?
-      this.checkToken()
-
-  authenticateUser: () =>
-    @rtm.authenticateUser()
+      @populateFromFrob(frob)
+    else if @token()? and @username()?
+      @checkToken()
 
   toJSON: () ->
     copy = ko.toJS(this)

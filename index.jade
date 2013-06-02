@@ -36,9 +36,8 @@ html(lang="en")
         .span12
           pre(data-bind="text: ko.toJSON($root, null, 2)")
 
-      .modal.hide(data-bind="showModal: !auth.loggedIn()")
+      .modal.fade.hide(data-bind="showModal: !auth.loggedIn()")
         .modal-header
-          button.close(data-dismiss="modal", aria-hidden="true") &times;
           h3 Remember the Milk
         .modal-body
           div(data-bind="visible: auth.tokenExpired()")
@@ -46,13 +45,12 @@ html(lang="en")
           div(data-bind="visible: !auth.tokenExpired()")
             | In order to use this page properly you must authorise it to access your Remember the Milk account.
         .modal-footer
-          a.btn.btn-primary(href="#", data-bind="click: auth.authenticateUser")
+          a.btn.btn-primary(href="#", data-bind="click: auth.redirectToRTM")
             | Log in to Remember the Milk
 
-    script(src="https://ajax.googleapis.com/ajax/libs/jquery/1/jquery.min.js")
+    script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js")
     script(src="bootstrap/js/bootstrap.min.js")
     script(src="js/knockout-2.2.1.js")
     script(src="js/md5-min.js")
-    script(src="js/rtm.js")
     script(src="keys.js")
     script(src="js/bulk-add.js")
