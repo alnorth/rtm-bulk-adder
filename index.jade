@@ -31,6 +31,9 @@ html(lang="en")
         .row(data-bind="foreach: lists")
           .span6
             .list-box.well
+              .rtm-lists
+                span List: 
+                select.input-medium(data-bind="value: rtmList, options: $root.rtmLists, optionsText: 'name'")
               h4.title(data-bind="text: 'Task Set ' + ($index() + 1)")
               textarea.list(data-bind="value: text")
               div

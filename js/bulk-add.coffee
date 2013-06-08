@@ -1,5 +1,11 @@
 storageKey = 'data-v2'
 
+sortByKey = (array, key) ->
+  array.sort (a, b) ->
+    x = a[key]
+    y = b[key]
+    if x < y then -1 else (if x > y then 1 else 0)
+
 getParameterByName = (name) ->
   name = name.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]')
   regexS = '[\\?&]' + name + '=([^&#]*)'
@@ -33,12 +39,21 @@ class List
   constructor: (vm, saved) ->
     saved ?= {}
     @text = ko.observable(saved.text ? "")
+
+    @rtmList = ko.observable()
+    # Load the right RTM list once they've been fetched
+    if saved.rtmList?
+      vm.rtmLists.subscribe (newValue) =>
+        @rtmList ko.utils.arrayFirst(newValue, (l) -> l.id is saved.rtmList)
+    
     @sending = ko.observable(false)
     @vm = vm
+    
     @text.subscribe((newValue) -> vm.save())
+    @rtmList.subscribe((newValue) -> vm.save())
 
   sendLine: (line, callback) ->
-    @vm.auth.addTask line, (data) ->
+    @vm.auth.addTask line, @rtmList().id, (data) ->
       if data.rsp.stat is "ok"
         callback()
 
@@ -65,6 +80,8 @@ class List
     copy = ko.toJS(this)
     delete copy.vm
     delete copy.sending
+    if copy.rtmList?
+      copy.rtmList = copy.rtmList.id
     copy
 
 class Auth
@@ -112,9 +129,18 @@ class Auth
     else
       callback()
   
-  addTask: (text, callback) ->
+  addTask: (text, listId, callback) ->
     @ensureTimeline =>
-      @apiCall("rtm.tasks.add", {timeline: @timeline(), name: text, parse: 1}, true, callback)
+      args =
+        timeline: @timeline(),
+        name: text,
+        parse: 1
+      if listId isnt '0'
+        args.list_id = listId
+      @apiCall("rtm.tasks.add", args, true, callback)
+
+  getListOfLists: (callback) ->
+    @apiCall('rtm.lists.getList', {}, true, callback)
 
   apiCall: (method, params, authenticated, callback) ->
     url = "http://api.rememberthemilk.com/services/rest/"
@@ -189,6 +215,7 @@ class Auth
 class ViewModel
   constructor: (saved) ->
     @lists = ko.observableArray()
+    @rtmLists = ko.observableArray()
     @fatalError = ko.observable(null)
     @auth = new Auth(this, saved.auth ? {})
     if saved.lists?
@@ -199,8 +226,26 @@ class ViewModel
 
     @lists.subscribe(=> @save())
 
+  loadListsFromRtm: (callback) ->
+    @auth.getListOfLists (data) =>
+      if data.rsp.stat is 'ok'
+        
+        filtered = ko.utils.arrayFilter data.rsp.lists.list, (l) ->
+          l.archived is '0' and l.locked is '0' and l.smart is '0'
+        filtered = sortByKey filtered, 'name'
+        
+        # Inbox will have been filtered out as it is marked as locked. Readd it at the top.
+        filtered.unshift name: 'Inbox', id: '0'
+
+        @rtmLists(filtered)
+        callback()
+      else
+        @vm.fatalError('There was a problem your lists from Remember the Milk: ' + data.rsp.err.msg)
+
   load: ->
-    @auth.ensureToken(=> @loading false)
+    @auth.ensureToken () =>
+      @loadListsFromRtm () =>
+        @loading false
 
   addList: ->
     @lists.push(new List(this))
@@ -215,6 +260,7 @@ class ViewModel
     copy = ko.toJS(this)
     delete copy.fatalError
     delete copy.loading
+    delete copy.rtmLists
     copy
 
 

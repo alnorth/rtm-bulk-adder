@@ -30,6 +30,9 @@
         <div data-bind="foreach: lists" class="row">
           <div class="span6">
             <div class="list-box well">
+              <div class="rtm-lists"><span>List: </span>
+                <select data-bind="value: rtmList, options: $root.rtmLists, optionsText: 'name'" class="input-medium"></select>
+              </div>
               <h4 data-bind="text: 'Task Set ' + ($index() + 1)" class="title"></h4>
               <textarea data-bind="value: text" class="list"></textarea>
               <div>

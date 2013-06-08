@@ -1,9 +1,27 @@
 (function() {
-  var Auth, List, ViewModel, getParameterByName, migrateOldValues, saved, storageKey, vm,
+  var Auth, List, ViewModel, getParameterByName, migrateOldValues, saved, sortByKey, storageKey, vm,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty;
 
   storageKey = 'data-v2';
+
+  sortByKey = function(array, key) {
+    return array.sort(function(a, b) {
+      var x, y;
+
+      x = a[key];
+      y = b[key];
+      if (x < y) {
+        return -1;
+      } else {
+        if (x > y) {
+          return 1;
+        } else {
+          return 0;
+        }
+      }
+    });
+  };
 
   getParameterByName = function(name) {
     var regex, regexS, results;
@@ -66,21 +84,33 @@
   List = (function() {
     function List(vm, saved) {
       this.send = __bind(this.send, this);
-      var _ref;
+      var _ref,
+        _this = this;
 
       if (saved == null) {
         saved = {};
       }
       this.text = ko.observable((_ref = saved.text) != null ? _ref : "");
+      this.rtmList = ko.observable();
+      if (saved.rtmList != null) {
+        vm.rtmLists.subscribe(function(newValue) {
+          return _this.rtmList(ko.utils.arrayFirst(newValue, function(l) {
+            return l.id === saved.rtmList;
+          }));
+        });
+      }
       this.sending = ko.observable(false);
       this.vm = vm;
       this.text.subscribe(function(newValue) {
         return vm.save();
       });
+      this.rtmList.subscribe(function(newValue) {
+        return vm.save();
+      });
     }
 
     List.prototype.sendLine = function(line, callback) {
-      return this.vm.auth.addTask(line, function(data) {
+      return this.vm.auth.addTask(line, this.rtmList().id, function(data) {
         if (data.rsp.stat === "ok") {
           return callback();
         }
@@ -120,6 +150,9 @@
       copy = ko.toJS(this);
       delete copy.vm;
       delete copy.sending;
+      if (copy.rtmList != null) {
+        copy.rtmList = copy.rtmList.id;
+      }
       return copy;
     };
 
@@ -206,16 +239,26 @@
       }
     };
 
-    Auth.prototype.addTask = function(text, callback) {
+    Auth.prototype.addTask = function(text, listId, callback) {
       var _this = this;
 
       return this.ensureTimeline(function() {
-        return _this.apiCall("rtm.tasks.add", {
+        var args;
+
+        args = {
           timeline: _this.timeline(),
           name: text,
           parse: 1
-        }, true, callback);
+        };
+        if (listId !== '0') {
+          args.list_id = listId;
+        }
+        return _this.apiCall("rtm.tasks.add", args, true, callback);
       });
+    };
+
+    Auth.prototype.getListOfLists = function(callback) {
+      return this.apiCall('rtm.lists.getList', {}, true, callback);
     };
 
     Auth.prototype.apiCall = function(method, params, authenticated, callback) {
@@ -317,6 +360,7 @@
         _this = this;
 
       this.lists = ko.observableArray();
+      this.rtmLists = ko.observableArray();
       this.fatalError = ko.observable(null);
       this.auth = new Auth(this, (_ref = saved.auth) != null ? _ref : {});
       if (saved.lists != null) {
@@ -332,11 +376,36 @@
       });
     }
 
+    ViewModel.prototype.loadListsFromRtm = function(callback) {
+      var _this = this;
+
+      return this.auth.getListOfLists(function(data) {
+        var filtered;
+
+        if (data.rsp.stat === 'ok') {
+          filtered = ko.utils.arrayFilter(data.rsp.lists.list, function(l) {
+            return l.archived === '0' && l.locked === '0' && l.smart === '0';
+          });
+          filtered = sortByKey(filtered, 'name');
+          filtered.unshift({
+            name: 'Inbox',
+            id: '0'
+          });
+          _this.rtmLists(filtered);
+          return callback();
+        } else {
+          return _this.vm.fatalError('There was a problem your lists from Remember the Milk: ' + data.rsp.err.msg);
+        }
+      });
+    };
+
     ViewModel.prototype.load = function() {
       var _this = this;
 
       return this.auth.ensureToken(function() {
-        return _this.loading(false);
+        return _this.loadListsFromRtm(function() {
+          return _this.loading(false);
+        });
       });
     };
 
@@ -358,6 +427,7 @@
       copy = ko.toJS(this);
       delete copy.fatalError;
       delete copy.loading;
+      delete copy.rtmLists;
       return copy;
     };
 
