@@ -1,5 +1,5 @@
 (function() {
-  var Auth, List, ViewModel, getParameterByName, migrateOldValues, saved, sortByKey, storageKey, vm,
+  var Auth, List, ViewModel, getParameterByName, migrateOldValues, saved, sortByKey, storageKey, trackEvent, vm,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty;
 
@@ -66,6 +66,12 @@
     }
   };
 
+  trackEvent = function(category, action) {
+    if (typeof _gaq !== "undefined" && _gaq !== null) {
+      return _gaq.push(['_trackEvent', category, action]);
+    }
+  };
+
   ko.bindingHandlers.showModal = {
     init: function(element, valueAccessor) {},
     update: function(element, valueAccessor) {
@@ -122,6 +128,7 @@
         _this = this;
 
       if (!this.sending()) {
+        trackEvent('Task Set', 'Send');
         lines = this.text().split('\n');
         sendTask = function(index) {
           var task;
@@ -410,10 +417,12 @@
     };
 
     ViewModel.prototype.addList = function() {
+      trackEvent('Task Set', 'Add');
       return this.lists.push(new List(this));
     };
 
     ViewModel.prototype.remove = function(list) {
+      trackEvent('Task Set', 'Remove');
       return this.lists.remove(list);
     };
 

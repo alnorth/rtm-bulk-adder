@@ -24,6 +24,10 @@ migrateOldValues = ->
   else
     lists: [{}]
 
+trackEvent = (category, action) ->
+  if _gaq?
+    _gaq.push(['_trackEvent', category, action])
+
 ko.bindingHandlers.showModal =
   init: (element, valueAccessor) ->,
   update: (element, valueAccessor) ->
@@ -59,6 +63,7 @@ class List
 
   send: =>
     if !@sending()
+      trackEvent 'Task Set', 'Send'
       lines = @text().split('\n')
       sendTask = (index) =>
         if index < lines.length
@@ -248,9 +253,11 @@ class ViewModel
         @loading false
 
   addList: ->
+    trackEvent 'Task Set', 'Add'
     @lists.push(new List(this))
 
   remove: (list) =>
+    trackEvent 'Task Set', 'Remove'
     @lists.remove(list)
 
   save: ->
