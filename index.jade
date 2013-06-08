@@ -48,13 +48,15 @@ html(lang="en")
               |  Add list
 
         footer
-          div.pull-right
+          div.footer-right
             | This product uses the Remember The Milk API but is not endorsed or certified by Remember The Milk.
-          div
+          div.footer-left
             | by 
             a(href="http://www.twitter.com/al_north") @al_north
             |  | 
             a(href="http://www.alnorth.com") blog
+            |  | 
+            a(href="https://github.com/alnorth29/rtm-bulk-adder/issues") bugs &amp; feature requests
 
     .modal.fade.hide(data-bind="showModal: fatalError() || (!auth.loggedIn() && !loading())")
       .modal-header
