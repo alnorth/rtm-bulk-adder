@@ -206,7 +206,8 @@ class Auth
     else if @token()? and @username()?
       @checkToken(callback)
     else
-      @redirectToRTM()
+      @loggedIn(false)
+      @vm.loading(false)
 
   toJSON: ->
     copy = ko.toJS(this)

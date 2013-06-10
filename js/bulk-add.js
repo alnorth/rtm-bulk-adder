@@ -319,7 +319,8 @@
       } else if ((this.token() != null) && (this.username() != null)) {
         return this.checkToken(callback);
       } else {
-        return this.redirectToRTM();
+        this.loggedIn(false);
+        return this.vm.loading(false);
       }
     };
 
