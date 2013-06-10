@@ -8,7 +8,6 @@
   sortByKey = function(array, key) {
     return array.sort(function(a, b) {
       var x, y;
-
       x = a[key];
       y = b[key];
       if (x < y) {
@@ -25,7 +24,6 @@
 
   getParameterByName = function(name) {
     var regex, regexS, results;
-
     name = name.replace(/[\[]/, '\\\[').replace(/[\]]/, '\\\]');
     regexS = '[\\?&]' + name + '=([^&#]*)';
     regex = new RegExp(regexS);
@@ -39,7 +37,6 @@
 
   migrateOldValues = function() {
     var i, listCount, _ref, _ref1;
-
     listCount = localStorage.getItem('numberOfLists');
     if (listCount != null) {
       return {
@@ -49,7 +46,6 @@
         },
         lists: (function() {
           var _i, _ref2, _results;
-
           _results = [];
           for (i = _i = 0, _ref2 = listCount - 1; 0 <= _ref2 ? _i <= _ref2 : _i >= _ref2; i = 0 <= _ref2 ? ++_i : --_i) {
             _results.push({
@@ -76,7 +72,6 @@
     init: function(element, valueAccessor) {},
     update: function(element, valueAccessor) {
       var value;
-
       value = valueAccessor();
       if (ko.utils.unwrapObservable(value)) {
         $(element).modal('show');
@@ -92,7 +87,6 @@
       this.send = __bind(this.send, this);
       var _ref,
         _this = this;
-
       if (saved == null) {
         saved = {};
       }
@@ -126,13 +120,11 @@
     List.prototype.send = function() {
       var lines, sendTask,
         _this = this;
-
       if (!this.sending()) {
         trackEvent('Task Set', 'Send');
         lines = this.text().split('\n');
         sendTask = function(index) {
           var task;
-
           if (index < lines.length) {
             task = $.trim(lines[index]);
             if (task.length > 0) {
@@ -153,7 +145,6 @@
 
     List.prototype.toJSON = function() {
       var copy;
-
       copy = ko.toJS(this);
       delete copy.vm;
       delete copy.sending;
@@ -172,7 +163,6 @@
       this.redirectToRTM = __bind(this.redirectToRTM, this);
       this.logOut = __bind(this.logOut, this);
       var _ref, _ref1;
-
       if (!((window.apiKey != null) && (window.sharedSecret != null))) {
         vm.fatalError('apiKey and sharedSecret have not been defined. Have you added a keys.js file as described in the readme?');
       }
@@ -195,10 +185,8 @@
 
     Auth.prototype.addSig = function(values) {
       var k, key, keysAndValues, sortedKeys;
-
       sortedKeys = (function() {
         var _results;
-
         _results = [];
         for (k in values) {
           if (!__hasProp.call(values, k)) continue;
@@ -209,7 +197,6 @@
       sortedKeys.sort();
       keysAndValues = ((function() {
         var _i, _len, _results;
-
         _results = [];
         for (_i = 0, _len = sortedKeys.length; _i < _len; _i++) {
           key = sortedKeys[_i];
@@ -222,7 +209,6 @@
 
     Auth.prototype.redirectToRTM = function() {
       var qs, url;
-
       url = "http://www.rememberthemilk.com/services/auth/";
       qs = {
         api_key: apiKey,
@@ -235,7 +221,6 @@
 
     Auth.prototype.ensureTimeline = function(callback) {
       var _this = this;
-
       if (this.timeline() == null) {
         return this.apiCall("rtm.timelines.create", {}, true, function(data) {
           _this.timeline(data.rsp.timeline);
@@ -248,10 +233,8 @@
 
     Auth.prototype.addTask = function(text, listId, callback) {
       var _this = this;
-
       return this.ensureTimeline(function() {
         var args;
-
         args = {
           timeline: _this.timeline(),
           name: text,
@@ -270,7 +253,6 @@
 
     Auth.prototype.apiCall = function(method, params, authenticated, callback) {
       var functionName, head, script, url;
-
       url = "http://api.rememberthemilk.com/services/rest/";
       functionName = "rtmJsonp" + (new Date()).getTime() + "_" + this.apiCallCount;
       this.apiCallCount++;
@@ -301,7 +283,6 @@
 
     Auth.prototype.populateFromFrob = function(frob) {
       var _this = this;
-
       return this.apiCall("rtm.auth.getToken", {
         frob: frob
       }, false, function(data) {
@@ -318,7 +299,6 @@
 
     Auth.prototype.checkToken = function(callback) {
       var _this = this;
-
       return this.apiCall("rtm.auth.checkToken", {
         auth_token: this.token()
       }, false, function(data) {
@@ -333,20 +313,18 @@
 
     Auth.prototype.ensureToken = function(callback) {
       var frob;
-
       frob = getParameterByName('frob');
       if (frob !== "") {
         return this.populateFromFrob(frob);
       } else if ((this.token() != null) && (this.username() != null)) {
         return this.checkToken(callback);
       } else {
-        return callback();
+        return this.redirectToRTM();
       }
     };
 
     Auth.prototype.toJSON = function() {
       var copy;
-
       copy = ko.toJS(this);
       delete copy.vm;
       delete copy.loggedIn;
@@ -365,7 +343,6 @@
       this.remove = __bind(this.remove, this);
       var list, _i, _len, _ref, _ref1,
         _this = this;
-
       this.lists = ko.observableArray();
       this.rtmLists = ko.observableArray();
       this.fatalError = ko.observable(null);
@@ -385,10 +362,8 @@
 
     ViewModel.prototype.loadListsFromRtm = function(callback) {
       var _this = this;
-
       return this.auth.getListOfLists(function(data) {
         var filtered;
-
         if (data.rsp.stat === 'ok') {
           filtered = ko.utils.arrayFilter(data.rsp.lists.list, function(l) {
             return l.archived === '0' && l.locked === '0' && l.smart === '0';
@@ -401,14 +376,13 @@
           _this.rtmLists(filtered);
           return callback();
         } else {
-          return _this.vm.fatalError('There was a problem your lists from Remember the Milk: ' + data.rsp.err.msg);
+          return _this.fatalError('There was a problem fetching your lists from Remember the Milk: ' + data.rsp.err.msg);
         }
       });
     };
 
     ViewModel.prototype.load = function() {
       var _this = this;
-
       return this.auth.ensureToken(function() {
         return _this.loadListsFromRtm(function() {
           return _this.loading(false);
@@ -432,7 +406,6 @@
 
     ViewModel.prototype.toJSON = function() {
       var copy;
-
       copy = ko.toJS(this);
       delete copy.fatalError;
       delete copy.loading;

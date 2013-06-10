@@ -206,7 +206,7 @@ class Auth
     else if @token()? and @username()?
       @checkToken(callback)
     else
-      callback()
+      @redirectToRTM()
 
   toJSON: ->
     copy = ko.toJS(this)
@@ -245,7 +245,7 @@ class ViewModel
         @rtmLists(filtered)
         callback()
       else
-        @vm.fatalError('There was a problem your lists from Remember the Milk: ' + data.rsp.err.msg)
+        @fatalError('There was a problem fetching your lists from Remember the Milk: ' + data.rsp.err.msg)
 
   load: ->
     @auth.ensureToken () =>
