@@ -31,11 +31,20 @@ html(lang="en")
         .row(data-bind="foreach: lists")
           .span6
             .list-box.well
-              .rtm-lists
-                span List: 
-                select.input-medium(data-bind="value: rtmList, options: $root.rtmLists, optionsText: 'name'")
+              .rtm-options
+                .btn-group
+                  a.btn.dropdown-toggle(data-toggle="dropdown", href="#", title="Extra options", data-bind="css: {disabled: rtmList()}")
+                    i.icon-cog
+                  ul.dropdown-menu
+                    li(data-bind="if: !rtmList()")
+                      a(data-bind="click: setRtmListToDefault") Add to specific list
               h4.title(data-bind="text: 'Task Set ' + ($index() + 1)")
               textarea.list(data-bind="value: text")
+              .rtm-extra-option(data-bind="if: rtmList")
+                span List: 
+                select.input-medium(data-bind="value: rtmList, options: $root.rtmLists, optionsText: 'name'")
+                .btn(data-bind="click: clearRtmList")
+                  i.icon-remove
               div
                 .btn(data-bind="click: send, css: { disabled: sending }")
                   i.icon-upload

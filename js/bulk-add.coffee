@@ -81,6 +81,12 @@ class List
     @sending true
     sendTask 0
 
+  clearRtmList: =>
+    @rtmList(null)
+
+  setRtmListToDefault: =>
+    @rtmList(vm.rtmLists()[0])
+
   toJSON: ->
     copy = ko.toJS(this)
     delete copy.vm

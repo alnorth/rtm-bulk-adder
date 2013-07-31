@@ -84,6 +84,8 @@
 
   List = (function() {
     function List(vm, saved) {
+      this.setRtmListToDefault = __bind(this.setRtmListToDefault, this);
+      this.clearRtmList = __bind(this.clearRtmList, this);
       this.send = __bind(this.send, this);
       var _ref,
         _this = this;
@@ -141,6 +143,14 @@
       }
       this.sending(true);
       return sendTask(0);
+    };
+
+    List.prototype.clearRtmList = function() {
+      return this.rtmList(null);
+    };
+
+    List.prototype.setRtmListToDefault = function() {
+      return this.rtmList(vm.rtmLists()[0]);
     };
 
     List.prototype.toJSON = function() {
