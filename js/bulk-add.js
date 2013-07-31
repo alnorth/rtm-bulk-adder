@@ -84,6 +84,8 @@
 
   List = (function() {
     function List(vm, saved) {
+      this.setStartPointToDefault = __bind(this.setStartPointToDefault, this);
+      this.clearStartPoint = __bind(this.clearStartPoint, this);
       this.setRtmListToDefault = __bind(this.setRtmListToDefault, this);
       this.clearRtmList = __bind(this.clearRtmList, this);
       this.send = __bind(this.send, this);
@@ -101,12 +103,28 @@
           }));
         });
       }
+      this.startPoint = ko.observable(saved.startPoint);
+      this.startPointDate = ko.computed(function() {
+        return Date.parse(_this.startPoint());
+      });
+      this.startPointDateString = ko.computed(function() {
+        var date;
+        date = _this.startPointDate();
+        if (date) {
+          return date.toString('yyyy-MM-dd HH:mm');
+        } else {
+          return 'Invalid date';
+        }
+      });
       this.sending = ko.observable(false);
       this.vm = vm;
       this.text.subscribe(function(newValue) {
         return vm.save();
       });
       this.rtmList.subscribe(function(newValue) {
+        return vm.save();
+      });
+      this.startPoint.subscribe(function(newValue) {
         return vm.save();
       });
     }
@@ -151,6 +169,14 @@
 
     List.prototype.setRtmListToDefault = function() {
       return this.rtmList(vm.rtmLists()[0]);
+    };
+
+    List.prototype.clearStartPoint = function() {
+      return this.startPoint(null);
+    };
+
+    List.prototype.setStartPointToDefault = function() {
+      return this.startPoint('Now');
     };
 
     List.prototype.toJSON = function() {

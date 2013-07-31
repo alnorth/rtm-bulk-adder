@@ -33,11 +33,13 @@ html(lang="en")
             .list-box.well
               .rtm-options
                 .btn-group
-                  a.btn.dropdown-toggle(data-toggle="dropdown", href="#", title="Extra options", data-bind="css: {disabled: rtmList()}")
+                  a.btn.dropdown-toggle(data-toggle="dropdown", href="#", title="Extra options", data-bind="css: {disabled: rtmList() && startPoint()}")
                     i.icon-cog
                   ul.dropdown-menu
                     li(data-bind="if: !rtmList()")
                       a(data-bind="click: setRtmListToDefault") Add to specific list
+                    li(data-bind="if: !startPoint()")
+                      a(data-bind="click: setStartPointToDefault") Set start point
               h4.title(data-bind="text: 'Task Set ' + ($index() + 1)")
               textarea.list(data-bind="value: text")
               .rtm-extra-option(data-bind="if: rtmList")
@@ -45,6 +47,12 @@ html(lang="en")
                 select.input-medium(data-bind="value: rtmList, options: $root.rtmLists, optionsText: 'name'")
                 .btn(data-bind="click: clearRtmList")
                   i.icon-remove
+              .rtm-extra-option(data-bind="if: startPoint")
+                span Start point:
+                input.input-medium(type="text", data-bind="value: startPoint")
+                .btn(data-bind="click: clearStartPoint")
+                  i.icon-remove
+                span.start-date-string(data-bind="text: startPointDateString")
               div
                 .btn(data-bind="click: send, css: { disabled: sending }")
                   i.icon-upload
@@ -89,6 +97,7 @@ html(lang="en")
     script(src="bootstrap/js/bootstrap.min.js")
     script(src="js/knockout-2.2.1.js")
     script(src="js/md5-min.js")
+    script(src="js/date.js")
     script(src="keys.js")
     script(src="js/bulk-add.js")
     script(type="text/javascript")

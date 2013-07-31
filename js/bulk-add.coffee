@@ -49,12 +49,23 @@ class List
     if saved.rtmList?
       vm.rtmLists.subscribe (newValue) =>
         @rtmList ko.utils.arrayFirst(newValue, (l) -> l.id is saved.rtmList)
+
+    @startPoint = ko.observable(saved.startPoint)
+    @startPointDate = ko.computed =>
+      Date.parse @startPoint()
+    @startPointDateString = ko.computed =>
+      date = @startPointDate()
+      if date
+        date.toString('yyyy-MM-dd HH:mm')
+      else
+        'Invalid date'
     
     @sending = ko.observable(false)
     @vm = vm
     
     @text.subscribe((newValue) -> vm.save())
     @rtmList.subscribe((newValue) -> vm.save())
+    @startPoint.subscribe((newValue) -> vm.save())
 
   sendLine: (line, callback) ->
     @vm.auth.addTask line, @rtmList().id, (data) ->
@@ -86,6 +97,12 @@ class List
 
   setRtmListToDefault: =>
     @rtmList(vm.rtmLists()[0])
+
+  clearStartPoint: =>
+    @startPoint(null)
+
+  setStartPointToDefault: =>
+    @startPoint('Now')
 
   toJSON: ->
     copy = ko.toJS(this)

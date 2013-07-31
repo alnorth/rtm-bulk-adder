@@ -31,9 +31,10 @@
           <div class="span6">
             <div class="list-box well">
               <div class="rtm-options">
-                <div class="btn-group"><a data-toggle="dropdown" href="#" title="Extra options" data-bind="css: {disabled: rtmList()}" class="btn dropdown-toggle"><i class="icon-cog"></i></a>
+                <div class="btn-group"><a data-toggle="dropdown" href="#" title="Extra options" data-bind="css: {disabled: rtmList() &amp;&amp; startPoint()}" class="btn dropdown-toggle"><i class="icon-cog"></i></a>
                   <ul class="dropdown-menu">
                     <li data-bind="if: !rtmList()"><a data-bind="click: setRtmListToDefault">Add to specific list</a></li>
+                    <li data-bind="if: !startPoint()"><a data-bind="click: setStartPointToDefault">Set start point</a></li>
                   </ul>
                 </div>
               </div>
@@ -42,6 +43,10 @@
               <div data-bind="if: rtmList" class="rtm-extra-option"><span>List: </span>
                 <select data-bind="value: rtmList, options: $root.rtmLists, optionsText: 'name'" class="input-medium"></select>
                 <div data-bind="click: clearRtmList" class="btn"><i class="icon-remove"></i></div>
+              </div>
+              <div data-bind="if: startPoint" class="rtm-extra-option"><span>Start point:</span>
+                <input type="text" data-bind="value: startPoint" class="input-medium">
+                <div data-bind="click: clearStartPoint" class="btn"><i class="icon-remove"></i></div><span data-bind="text: startPointDateString" class="start-date-string"></span>
               </div>
               <div>
                 <div data-bind="click: send, css: { disabled: sending }" class="btn"><i class="icon-upload"></i> Send to RTM</div>
@@ -76,6 +81,7 @@
     <script src="bootstrap/js/bootstrap.min.js"></script>
     <script src="js/knockout-2.2.1.js"></script>
     <script src="js/md5-min.js"></script>
+    <script src="js/date.js"></script>
     <script src="keys.js"></script>
     <script src="js/bulk-add.js"></script>
     <script type="text/javascript">
