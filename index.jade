@@ -42,6 +42,8 @@ html(lang="en")
                       a(data-bind="click: setStartPointToDefault") Set start point
               h4.title(data-bind="text: 'Task Set ' + ($index() + 1)")
               textarea.list(data-bind="value: text")
+              .parsing-errors(data-bind="foreach: combinedErrors")
+                .text-error(data-bind="text: $data")
               .rtm-extra-option(data-bind="if: rtmList")
                 span List: 
                 select.input-medium(data-bind="value: rtmList, options: $root.rtmLists, optionsText: 'name'")

@@ -28,6 +28,10 @@ trackEvent = (category, action) ->
   if _gaq?
     _gaq.push(['_trackEvent', category, action])
 
+String.prototype.regexIndexOf = (regex, startpos) ->
+    indexOf = @substring(startpos || 0).search(regex)
+    if (indexOf >= 0) then (indexOf + (startpos || 0)) else indexOf
+
 ko.bindingHandlers.showModal =
   init: (element, valueAccessor) ->,
   update: (element, valueAccessor) ->
@@ -65,6 +69,10 @@ class List
 
     @linesToSend = ko.computed =>
       @processLine(l) for l in @text().split('\n')
+    @combinedErrors = ko.computed =>
+      errors = []
+      errors = errors.concat(l.errors) for l in @linesToSend()
+      errors
     
     @sending = ko.observable(false)
     @vm = vm
@@ -74,7 +82,18 @@ class List
     @startPoint.subscribe((newValue) -> vm.save())
 
   processLine: (line) ->
-    { line: $.trim(line) }
+    formatted = $.trim(line)
+    errors = []
+    if @startPoint() and @startPointDate()
+      if formatted.regexIndexOf(/#{[^}]*$/g) >= 0
+        errors.push "Unclosed \#{} tag"
+      formatted = formatted.replace /#{[^}]*}/g, (value) =>
+        moment(@startPointDate()).format('YYYY-MM-DD HH:mm')
+    else
+      if formatted.regexIndexOf(/#{[^}]*}/g) >= 0
+        errors.push "Contains \#{} tag but has no start point set"
+
+    line: formatted, errors: errors
 
   sendLine: (line, callback) ->
     listId = if @rtmList() then @rtmList().id else null
@@ -84,7 +103,7 @@ class List
 
   canSend: =>
     # If we're using a start point then only allow sending when the date is valid
-    !@startPoint() || @startPointDate()
+    (!@startPoint() || @startPointDate()) && @combinedErrors().length is 0
 
   send: =>
     if !@sending()

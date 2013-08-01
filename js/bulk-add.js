@@ -68,6 +68,16 @@
     }
   };
 
+  String.prototype.regexIndexOf = function(regex, startpos) {
+    var indexOf;
+    indexOf = this.substring(startpos || 0).search(regex);
+    if (indexOf >= 0) {
+      return indexOf + (startpos || 0);
+    } else {
+      return indexOf;
+    }
+  };
+
   ko.bindingHandlers.showModal = {
     init: function(element, valueAccessor) {},
     update: function(element, valueAccessor) {
@@ -132,6 +142,16 @@
         }
         return _results;
       });
+      this.combinedErrors = ko.computed(function() {
+        var errors, l, _i, _len, _ref1;
+        errors = [];
+        _ref1 = _this.linesToSend();
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          l = _ref1[_i];
+          errors = errors.concat(l.errors);
+        }
+        return errors;
+      });
       this.sending = ko.observable(false);
       this.vm = vm;
       this.text.subscribe(function(newValue) {
@@ -146,8 +166,25 @@
     }
 
     List.prototype.processLine = function(line) {
+      var errors, formatted,
+        _this = this;
+      formatted = $.trim(line);
+      errors = [];
+      if (this.startPoint() && this.startPointDate()) {
+        if (formatted.regexIndexOf(/#{[^}]*$/g) >= 0) {
+          errors.push("Unclosed \#{} tag");
+        }
+        formatted = formatted.replace(/#{[^}]*}/g, function(value) {
+          return moment(_this.startPointDate()).format('YYYY-MM-DD HH:mm');
+        });
+      } else {
+        if (formatted.regexIndexOf(/#{[^}]*}/g) >= 0) {
+          errors.push("Contains \#{} tag but has no start point set");
+        }
+      }
       return {
-        line: $.trim(line)
+        line: formatted,
+        errors: errors
       };
     };
 
@@ -162,7 +199,7 @@
     };
 
     List.prototype.canSend = function() {
-      return !this.startPoint() || this.startPointDate();
+      return (!this.startPoint() || this.startPointDate()) && this.combinedErrors().length === 0;
     };
 
     List.prototype.send = function() {

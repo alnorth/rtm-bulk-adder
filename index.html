@@ -40,6 +40,9 @@
               </div>
               <h4 data-bind="text: 'Task Set ' + ($index() + 1)" class="title"></h4>
               <textarea data-bind="value: text" class="list"></textarea>
+              <div data-bind="foreach: combinedErrors" class="parsing-errors">
+                <div data-bind="text: $data" class="text-error"></div>
+              </div>
               <div data-bind="if: rtmList" class="rtm-extra-option"><span>List: </span>
                 <select data-bind="value: rtmList, options: $root.rtmLists, optionsText: 'name'" class="input-medium"></select>
                 <div data-bind="click: clearRtmList" class="btn"><i class="icon-remove"></i></div>
