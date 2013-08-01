@@ -54,7 +54,7 @@ html(lang="en")
                   i.icon-remove
                 span.start-date-string(data-bind="text: startPointDateString")
               div
-                .btn(data-bind="click: send, css: { disabled: sending }")
+                .btn(data-bind="click: send, css: { disabled: sending() || !canSend() }")
                   i.icon-upload
                   |  Send to RTM
                 .btn.btn-danger(data-bind="click: $root.remove")

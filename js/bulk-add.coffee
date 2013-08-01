@@ -62,6 +62,9 @@ class List
         moment(d).format('YYYY-MM-DD HH:mm')
       else
         'Invalid date'
+
+    @linesToSend = ko.computed =>
+      @processLine(l) for l in @text().split('\n')
     
     @sending = ko.observable(false)
     @vm = vm
@@ -70,18 +73,26 @@ class List
     @rtmList.subscribe((newValue) -> vm.save())
     @startPoint.subscribe((newValue) -> vm.save())
 
+  processLine: (line) ->
+    { line: $.trim(line) }
+
   sendLine: (line, callback) ->
-    @vm.auth.addTask line, @rtmList().id, (data) ->
+    listId = if @rtmList() then @rtmList().id else null
+    @vm.auth.addTask line, listId, (data) ->
       if data.rsp.stat is "ok"
         callback()
+
+  canSend: =>
+    # If we're using a start point then only allow sending when the date is valid
+    !@startPoint() || @startPointDate()
 
   send: =>
     if !@sending()
       trackEvent 'Task Set', 'Send'
-      lines = @text().split('\n')
+      lines = @linesToSend()
       sendTask = (index) =>
         if index < lines.length
-          task = $.trim(lines[index])
+          task = lines[index].line
 
           if task.length > 0
             @sendLine task, ->
@@ -166,7 +177,7 @@ class Auth
         timeline: @timeline(),
         name: text,
         parse: 1
-      if listId isnt '0'
+      if listId and listId isnt '0'
         args.list_id = listId
       @apiCall("rtm.tasks.add", args, true, callback)
 

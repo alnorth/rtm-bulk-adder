@@ -89,6 +89,7 @@
       this.setRtmListToDefault = __bind(this.setRtmListToDefault, this);
       this.clearRtmList = __bind(this.clearRtmList, this);
       this.send = __bind(this.send, this);
+      this.canSend = __bind(this.canSend, this);
       var _ref,
         _this = this;
       if (saved == null) {
@@ -121,6 +122,16 @@
           return 'Invalid date';
         }
       });
+      this.linesToSend = ko.computed(function() {
+        var l, _i, _len, _ref1, _results;
+        _ref1 = _this.text().split('\n');
+        _results = [];
+        for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
+          l = _ref1[_i];
+          _results.push(_this.processLine(l));
+        }
+        return _results;
+      });
       this.sending = ko.observable(false);
       this.vm = vm;
       this.text.subscribe(function(newValue) {
@@ -134,12 +145,24 @@
       });
     }
 
+    List.prototype.processLine = function(line) {
+      return {
+        line: $.trim(line)
+      };
+    };
+
     List.prototype.sendLine = function(line, callback) {
-      return this.vm.auth.addTask(line, this.rtmList().id, function(data) {
+      var listId;
+      listId = this.rtmList() ? this.rtmList().id : null;
+      return this.vm.auth.addTask(line, listId, function(data) {
         if (data.rsp.stat === "ok") {
           return callback();
         }
       });
+    };
+
+    List.prototype.canSend = function() {
+      return !this.startPoint() || this.startPointDate();
     };
 
     List.prototype.send = function() {
@@ -147,11 +170,11 @@
         _this = this;
       if (!this.sending()) {
         trackEvent('Task Set', 'Send');
-        lines = this.text().split('\n');
+        lines = this.linesToSend();
         sendTask = function(index) {
           var task;
           if (index < lines.length) {
-            task = $.trim(lines[index]);
+            task = lines[index].line;
             if (task.length > 0) {
               return _this.sendLine(task, function() {
                 return sendTask(index + 1, length);
@@ -281,7 +304,7 @@
           name: text,
           parse: 1
         };
-        if (listId !== '0') {
+        if (listId && listId !== '0') {
           args.list_id = listId;
         }
         return _this.apiCall("rtm.tasks.add", args, true, callback);
