@@ -52,11 +52,13 @@ class List
 
     @startPoint = ko.observable(saved.startPoint)
     @startPointDate = ko.computed =>
-      Date.parse @startPoint()
+      sp = @startPoint()
+      if sp
+        date sp
     @startPointDateString = ko.computed =>
-      date = @startPointDate()
-      if date
-        date.toString('yyyy-MM-dd HH:mm')
+      d = @startPointDate()
+      if d
+        moment(d).format('YYYY-MM-DD HH:mm')
       else
         'Invalid date'
     

@@ -105,13 +105,17 @@
       }
       this.startPoint = ko.observable(saved.startPoint);
       this.startPointDate = ko.computed(function() {
-        return Date.parse(_this.startPoint());
+        var sp;
+        sp = _this.startPoint();
+        if (sp) {
+          return date(sp);
+        }
       });
       this.startPointDateString = ko.computed(function() {
-        var date;
-        date = _this.startPointDate();
-        if (date) {
-          return date.toString('yyyy-MM-dd HH:mm');
+        var d;
+        d = _this.startPointDate();
+        if (d) {
+          return moment(d).format('YYYY-MM-DD HH:mm');
         } else {
           return 'Invalid date';
         }
