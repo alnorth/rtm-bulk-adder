@@ -52,6 +52,7 @@ class List
 
     @startPoint = ko.observable(saved.startPoint)
     @startPointDate = ko.computed =>
+      vm.seconds() # Triggers updates of this computed every ten seconds
       sp = @startPoint()
       if sp
         date sp
@@ -249,6 +250,12 @@ class ViewModel
     @rtmLists = ko.observableArray()
     @fatalError = ko.observable(null)
     @auth = new Auth(this, saved.auth ? {})
+
+    # Set up an observable that's constantly changing. We can then use this to trigger
+    # updates of computed values.
+    @seconds = ko.observable()
+    setInterval (() => @seconds(moment().format('mm:ss'))), 10000
+
     if saved.lists?
       for list in saved.lists
         @lists.push(new List(this, list))

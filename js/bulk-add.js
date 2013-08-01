@@ -106,6 +106,7 @@
       this.startPoint = ko.observable(saved.startPoint);
       this.startPointDate = ko.computed(function() {
         var sp;
+        vm.seconds();
         sp = _this.startPoint();
         if (sp) {
           return date(sp);
@@ -388,6 +389,10 @@
       this.rtmLists = ko.observableArray();
       this.fatalError = ko.observable(null);
       this.auth = new Auth(this, (_ref = saved.auth) != null ? _ref : {});
+      this.seconds = ko.observable();
+      setInterval((function() {
+        return _this.seconds(moment().format('mm:ss'));
+      }), 10000);
       if (saved.lists != null) {
         _ref1 = saved.lists;
         for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
