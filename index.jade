@@ -69,6 +69,14 @@ html(lang="en")
               i.icon-plus.icon-white
               |  Add task set
 
+        .ads
+          script(type="text/javascript")
+            google_ad_client = "ca-pub-8698878354150499";
+            google_ad_slot = "9979448031";
+            google_ad_width = 728;
+            google_ad_height = 90;
+          script(type="text/javascript", src="http://pagead2.googlesyndication.com/pagead/show_ads.js")
+
         footer
           div.footer-right
             | This product uses the Remember The Milk API but is not endorsed or certified by Remember The Milk.
@@ -104,9 +112,9 @@ html(lang="en")
     script(src="keys.js")
     script(src="js/bulk-add.js")
     script(type="text/javascript")
-      if(googleAnalyticsAccount) {
+      if(window.googleAnalyticsAccount) {
         var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', googleAnalyticsAccount]);
+        _gaq.push(['_setAccount', window.googleAnalyticsAccount]);
         _gaq.push(['_trackPageview']);
 
         (function() {
