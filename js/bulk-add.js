@@ -1,9 +1,26 @@
 (function() {
-  var Auth, List, ViewModel, getParameterByName, migrateOldValues, saved, sortByKey, storageKey, trackEvent, vm,
+  var Auth, List, ViewModel, getParameterByName, migrateOldValues, saved, sortByKey, storageKey, timeSpan, trackEvent, vm,
     __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     __hasProp = {}.hasOwnProperty;
 
   storageKey = 'data-v2';
+
+  timeSpan = {
+    second: 'seconds',
+    seconds: 'seconds',
+    minute: 'minutes',
+    minutes: 'minutes',
+    hour: 'hours',
+    hours: 'hours',
+    day: 'days',
+    days: 'days',
+    week: 'weeks',
+    weeks: 'weeks',
+    month: 'months',
+    months: 'months',
+    year: 'years',
+    years: 'years'
+  };
 
   sortByKey = function(array, key) {
     return array.sort(function(a, b) {
@@ -100,6 +117,7 @@
       this.clearRtmList = __bind(this.clearRtmList, this);
       this.send = __bind(this.send, this);
       this.canSend = __bind(this.canSend, this);
+      this.parseDateDiff = __bind(this.parseDateDiff, this);
       var _ref,
         _this = this;
       if (saved == null) {
@@ -165,18 +183,31 @@
       });
     }
 
+    List.prototype.addToDuration = function(num, type, duration) {
+      return duration[timeSpan[type]] = num;
+    };
+
+    List.prototype.parseDateDiff = function(text) {
+      var dt, duration, match, multiplier, regex;
+      dt = moment(this.startPointDate());
+      multiplier = text[2] === '-' ? -1 : 1;
+      duration = {};
+      regex = /(\d+)\s*(\w+)/gi;
+      while (match = regex.exec(text)) {
+        this.addToDuration(multiplier * parseInt(match[1]), match[2], duration);
+      }
+      return dt.add(duration).format('YYYY-MM-DD HH:mm');
+    };
+
     List.prototype.processLine = function(line) {
-      var errors, formatted,
-        _this = this;
+      var errors, formatted;
       formatted = $.trim(line);
       errors = [];
       if (this.startPoint() && this.startPointDate()) {
         if (formatted.regexIndexOf(/#{[^}]*$/g) >= 0) {
           errors.push("Unclosed \#{} tag");
         }
-        formatted = formatted.replace(/#{[^}]*}/g, function(value) {
-          return moment(_this.startPointDate()).format('YYYY-MM-DD HH:mm');
-        });
+        formatted = formatted.replace(/#{[^}]*}/g, this.parseDateDiff);
       } else {
         if (formatted.regexIndexOf(/#{[^}]*}/g) >= 0) {
           errors.push("Contains \#{} tag but has no start point set");

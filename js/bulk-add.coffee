@@ -1,5 +1,22 @@
 storageKey = 'data-v2'
 
+# Translate timespans into the terms used by moment
+timeSpan =
+  second: 'seconds',
+  seconds: 'seconds',
+  minute: 'minutes',
+  minutes: 'minutes',
+  hour: 'hours',
+  hours: 'hours',
+  day: 'days',
+  days: 'days',
+  week: 'weeks',
+  weeks: 'weeks',
+  month: 'months',
+  months: 'months',
+  year: 'years',
+  years: 'years'
+
 sortByKey = (array, key) ->
   array.sort (a, b) ->
     x = a[key]
@@ -73,7 +90,7 @@ class List
       errors = []
       errors = errors.concat(l.errors) for l in @linesToSend()
       errors
-    
+
     @sending = ko.observable(false)
     @vm = vm
     
@@ -81,18 +98,30 @@ class List
     @rtmList.subscribe((newValue) -> vm.save())
     @startPoint.subscribe((newValue) -> vm.save())
 
+  addToDuration: (num, type, duration) ->
+    duration[timeSpan[type]] = num
+
+  parseDateDiff: (text) =>
+    dt = moment(@startPointDate())
+
+    multiplier = if text[2] is '-' then -1 else 1
+    duration = {}
+    regex = /(\d+)\s*(\w+)/gi
+    
+    @addToDuration(multiplier * parseInt(match[1]), match[2], duration) while match = regex.exec text
+
+    dt.add(duration).format('YYYY-MM-DD HH:mm')
+
   processLine: (line) ->
     formatted = $.trim(line)
     errors = []
     if @startPoint() and @startPointDate()
       if formatted.regexIndexOf(/#{[^}]*$/g) >= 0
         errors.push "Unclosed \#{} tag"
-      formatted = formatted.replace /#{[^}]*}/g, (value) =>
-        moment(@startPointDate()).format('YYYY-MM-DD HH:mm')
+      formatted = formatted.replace /#{[^}]*}/g, @parseDateDiff
     else
       if formatted.regexIndexOf(/#{[^}]*}/g) >= 0
         errors.push "Contains \#{} tag but has no start point set"
-
     line: formatted, errors: errors
 
   sendLine: (line, callback) ->
