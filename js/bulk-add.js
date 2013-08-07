@@ -184,7 +184,13 @@
     }
 
     List.prototype.addToDuration = function(num, type, duration) {
-      return duration[timeSpan[type]] = num;
+      var translated;
+      translated = timeSpan[type];
+      if (translated) {
+        return duration[translated] = num;
+      } else {
+        throw new Error("Timespan \"" + type + "\" is not supported.");
+      }
     };
 
     List.prototype.parseDateDiff = function(text) {
@@ -200,18 +206,23 @@
     };
 
     List.prototype.processLine = function(line) {
-      var errors, formatted;
+      var err, errors, formatted;
       formatted = $.trim(line);
       errors = [];
-      if (this.startPoint() && this.startPointDate()) {
-        if (formatted.regexIndexOf(/#{[^}]*$/g) >= 0) {
-          errors.push("Unclosed \#{} tag");
+      try {
+        if (this.startPoint() && this.startPointDate()) {
+          if (formatted.regexIndexOf(/#{[^}]*$/g) >= 0) {
+            errors.push("Unclosed \#{} tag");
+          }
+          formatted = formatted.replace(/#{[^}]*}/g, this.parseDateDiff);
+        } else {
+          if (formatted.regexIndexOf(/#{[^}]*}/g) >= 0) {
+            errors.push("Contains \#{} tag but has no start point set");
+          }
         }
-        formatted = formatted.replace(/#{[^}]*}/g, this.parseDateDiff);
-      } else {
-        if (formatted.regexIndexOf(/#{[^}]*}/g) >= 0) {
-          errors.push("Contains \#{} tag but has no start point set");
-        }
+      } catch (_error) {
+        err = _error;
+        errors.push(err.message);
       }
       return {
         line: formatted,

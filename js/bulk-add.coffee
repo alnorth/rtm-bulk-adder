@@ -99,7 +99,11 @@ class List
     @startPoint.subscribe((newValue) -> vm.save())
 
   addToDuration: (num, type, duration) ->
-    duration[timeSpan[type]] = num
+    translated = timeSpan[type]
+    if translated
+      duration[translated] = num
+    else
+      throw new Error("Timespan \"#{type}\" is not supported.")
 
   parseDateDiff: (text) =>
     dt = moment(@startPointDate())
@@ -115,13 +119,16 @@ class List
   processLine: (line) ->
     formatted = $.trim(line)
     errors = []
-    if @startPoint() and @startPointDate()
-      if formatted.regexIndexOf(/#{[^}]*$/g) >= 0
-        errors.push "Unclosed \#{} tag"
-      formatted = formatted.replace /#{[^}]*}/g, @parseDateDiff
-    else
-      if formatted.regexIndexOf(/#{[^}]*}/g) >= 0
-        errors.push "Contains \#{} tag but has no start point set"
+    try
+      if @startPoint() and @startPointDate()
+        if formatted.regexIndexOf(/#{[^}]*$/g) >= 0
+          errors.push "Unclosed \#{} tag"
+        formatted = formatted.replace /#{[^}]*}/g, @parseDateDiff
+      else
+        if formatted.regexIndexOf(/#{[^}]*}/g) >= 0
+          errors.push "Contains \#{} tag but has no start point set"
+    catch err
+      errors.push(err.message)
     line: formatted, errors: errors
 
   sendLine: (line, callback) ->
