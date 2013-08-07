@@ -27,7 +27,6 @@ html(lang="en")
               | You can build up task sets by putting a task on each line. Use 
               a(href="https://www.rememberthemilk.com/services/smartadd/") smart add
               |  syntax to set due dates, lists, tags, etc.
-
         .row(data-bind="foreach: lists")
           .span6
             .list-box.well
@@ -52,6 +51,9 @@ html(lang="en")
               .rtm-extra-option(data-bind="if: startPoint")
                 span Start point:
                 input.input-medium(type="text", data-bind="value: startPoint")
+                | &nbsp;
+                a.btn(href="#", data-modal="start-point")
+                  i.icon-question-sign
                 .btn(data-bind="click: clearStartPoint")
                   i.icon-remove
                 span.start-date-string(data-bind="text: startPointDateString")
@@ -102,6 +104,19 @@ html(lang="en")
       .modal-footer(data-bind="visible: !fatalError()")
         a.btn.btn-primary(href="#", data-bind="click: auth.redirectToRTM")
           | Log in to Remember the Milk
+
+    #start-point.modal.fade.hide
+      .modal-header
+        h3 Start Point
+      .modal-body
+        p
+          | If you'd like to add multiple tasks around a particular date then you might want to use a start point.
+          | You set one date and then define the dates of all the tasks relative to that.
+        h4 Start point format
+
+      .modal-footer
+        a.btn(href="#", data-dismiss="modal")
+          | Close
 
     script(src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js")
     script(src="bootstrap/js/bootstrap.min.js")

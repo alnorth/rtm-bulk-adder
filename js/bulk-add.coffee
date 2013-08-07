@@ -379,3 +379,7 @@ else
 vm = new ViewModel(saved)
 ko.applyBindings(vm)
 vm.load()
+
+$(document).on 'click', '[data-modal]', ->
+  modalId = $(this).attr('data-modal')
+  $("\##{modalId}").modal('show')

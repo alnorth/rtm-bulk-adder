@@ -48,7 +48,7 @@
                 <div data-bind="click: clearRtmList" class="btn"><i class="icon-remove"></i></div>
               </div>
               <div data-bind="if: startPoint" class="rtm-extra-option"><span>Start point:</span>
-                <input type="text" data-bind="value: startPoint" class="input-medium">
+                <input type="text" data-bind="value: startPoint" class="input-medium">&nbsp;<a href="#" data-modal="start-point" class="btn"><i class="icon-question-sign"></i></a>
                 <div data-bind="click: clearStartPoint" class="btn"><i class="icon-remove"></i></div><span data-bind="text: startPointDateString" class="start-date-string"></span>
               </div>
               <div>
@@ -88,6 +88,19 @@
         <div data-bind="visible: !fatalError() &amp;&amp; !auth.tokenExpired()">In order to use this page properly you must authorise it to access your Remember the Milk account.</div>
       </div>
       <div data-bind="visible: !fatalError()" class="modal-footer"><a href="#" data-bind="click: auth.redirectToRTM" class="btn btn-primary">Log in to Remember the Milk</a></div>
+    </div>
+    <div id="start-point" class="modal fade hide">
+      <div class="modal-header">
+        <h3>Start Point</h3>
+      </div>
+      <div class="modal-body">
+        <p>
+          If you'd like to add multiple tasks around a particular date then you might want to use a start point.
+          You set one date and then define the dates of all the tasks relative to that.
+        </p>
+        <h4>Start point format</h4>
+      </div>
+      <div class="modal-footer"><a href="#" data-dismiss="modal" class="btn">Close</a></div>
     </div>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
     <script src="bootstrap/js/bootstrap.min.js"></script>

@@ -579,4 +579,10 @@
 
   vm.load();
 
+  $(document).on('click', '[data-modal]', function() {
+    var modalId;
+    modalId = $(this).attr('data-modal');
+    return $("\#" + modalId).modal('show');
+  });
+
 }).call(this);
