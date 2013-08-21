@@ -27,6 +27,9 @@ html(lang="en")
               | You can build up task sets by putting a task on each line. Use 
               a(href="https://www.rememberthemilk.com/services/smartadd/") smart add
               |  syntax to set due dates, lists, tags, etc.
+            p
+              | Try checking out the extra options that are available using the cog button in the
+              | top right of the list box.
         .row(data-bind="foreach: lists")
           .span6
             .list-box.well
@@ -52,8 +55,7 @@ html(lang="en")
                 span Start point:
                 input.input-medium(type="text", data-bind="value: startPoint")
                 | &nbsp;
-                a.btn(href="#", data-modal="start-point")
-                  i.icon-question-sign
+                a.btn(href="#", data-modal="start-point") Help
                 .btn(data-bind="click: clearStartPoint")
                   i.icon-remove
                 span.start-date-string(data-bind="text: startPointDateString")
@@ -88,7 +90,7 @@ html(lang="en")
             |  | 
             a(href="http://www.alnorth.com") blog
             |  | 
-            a(href="https://github.com/alnorth29/rtm-bulk-adder/issues") bugs &amp; feature requests
+            a(href="https://github.com/alnorth29/rtm-bulk-adder/issues") github (bugs &amp; feature requests)
 
     .modal.fade.hide(data-bind="showModal: fatalError() || (!auth.loggedIn() && !loading())")
       .modal-header
@@ -113,6 +115,34 @@ html(lang="en")
           | If you'd like to add multiple tasks around a particular date then you might want to use a start point.
           | You set one date and then define the dates of all the tasks relative to that.
         h4 Start point format
+        p
+          :markdown
+            The start point uses Matthew Mueller's [date](http://matthewmueller.github.io/date/) library. It will
+            take dates and times in formats like this:
+        .well
+          ul.two-columns
+            li 10 minutes from now 
+            li in 3 hours
+            li at 12:30pm
+            li tomorrow night at 5
+            li sunday night
+            li next week wednesday
+            li last month
+            li in 2 months
+            li friday at 2pm
+            li next week saturday morning
+        h4 Task date
+        p
+          | The task dates & times are defined relative to the start point. For example you might want to have one task
+          | due one hour after the start point and another due two hours after the start point.
+        p
+          | Each task should have a date period inside a \#{} tag. For example:
+        ul
+          li In a few hours \#{6 hours}
+          li Before we started \#{-7 hours}
+          li Combining measurements \#{6 days 5 hours 4 minutes 2 seconds}
+          li Period in the past ("-" negates the whole lot) \#{-6 days 5 hours}
+          li The actual start date \#{}
 
       .modal-footer
         a.btn(href="#", data-dismiss="modal")

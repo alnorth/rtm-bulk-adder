@@ -25,6 +25,10 @@
         <div class="row">
           <div class="span12">
             <p>You can build up task sets by putting a task on each line. Use <a href="https://www.rememberthemilk.com/services/smartadd/">smart add</a> syntax to set due dates, lists, tags, etc.</p>
+            <p>
+              Try checking out the extra options that are available using the cog button in the
+              top right of the list box.
+            </p>
           </div>
         </div>
         <div data-bind="foreach: lists" class="row">
@@ -48,7 +52,7 @@
                 <div data-bind="click: clearRtmList" class="btn"><i class="icon-remove"></i></div>
               </div>
               <div data-bind="if: startPoint" class="rtm-extra-option"><span>Start point:</span>
-                <input type="text" data-bind="value: startPoint" class="input-medium">&nbsp;<a href="#" data-modal="start-point" class="btn"><i class="icon-question-sign"></i></a>
+                <input type="text" data-bind="value: startPoint" class="input-medium">&nbsp;<a href="#" data-modal="start-point" class="btn">Help</a>
                 <div data-bind="click: clearStartPoint" class="btn"><i class="icon-remove"></i></div><span data-bind="text: startPointDateString" class="start-date-string"></span>
               </div>
               <div>
@@ -74,7 +78,7 @@
         </div>
         <footer>
           <div class="footer-right">This product uses the Remember The Milk API but is not endorsed or certified by Remember The Milk.</div>
-          <div class="footer-left">by <a href="http://www.twitter.com/al_north">@al_north</a> | <a href="http://www.alnorth.com">blog</a> | <a href="https://github.com/alnorth29/rtm-bulk-adder/issues">bugs &amp; feature requests</a></div>
+          <div class="footer-left">by <a href="http://www.twitter.com/al_north">@al_north</a> | <a href="http://www.alnorth.com">blog</a> | <a href="https://github.com/alnorth29/rtm-bulk-adder/issues">github (bugs &amp; feature requests)</a></div>
         </footer>
       </div>
     </div>
@@ -99,6 +103,37 @@
           You set one date and then define the dates of all the tasks relative to that.
         </p>
         <h4>Start point format</h4>
+        <p><p>The start point uses Matthew Mueller&#39;s <a href="http://matthewmueller.github.io/date/">date</a> library. It will
+take dates and times in formats like this:</p>
+
+        </p>
+        <div class="well">
+          <ul class="two-columns">
+            <li>10 minutes from now </li>
+            <li>in 3 hours</li>
+            <li>at 12:30pm</li>
+            <li>tomorrow night at 5</li>
+            <li>sunday night</li>
+            <li>next week wednesday</li>
+            <li>last month</li>
+            <li>in 2 months</li>
+            <li>friday at 2pm</li>
+            <li>next week saturday morning</li>
+          </ul>
+        </div>
+        <h4>Task date</h4>
+        <p>
+          The task dates & times are defined relative to the start point. For example you might want to have one task
+          due one hour after the start point and another due two hours after the start point.
+        </p>
+        <p>Each task should have a date period inside a #{} tag. For example:</p>
+        <ul>
+          <li>In a few hours #{6 hours}</li>
+          <li>Before we started #{-7 hours}</li>
+          <li>Combining measurements #{6 days 5 hours 4 minutes 2 seconds}</li>
+          <li>Period in the past ("-" negates the whole lot) #{-6 days 5 hours}</li>
+          <li>The actual start date #{}</li>
+        </ul>
       </div>
       <div class="modal-footer"><a href="#" data-dismiss="modal" class="btn">Close</a></div>
     </div>
